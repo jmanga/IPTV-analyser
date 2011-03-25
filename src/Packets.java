@@ -1,20 +1,22 @@
 
 public class Packets {
-	int PacketSize;
+	double PacketSize;
 	int PacketID;
 	Codecs PacketCodec;
 
-	public Packets(String cod){
-		this.PacketSize = 0;
+	public Packets(int PacID, double PacS, String cod){
+		this.PacketSize = PacS;
 		this.PacketCodec = Codecs.valueOf(cod);
+		this.PacketID = PacID;
 	}
 	
-	public Packets(){
+	public Packets(int PacID, double PacS){
 		this.PacketSize = 0;
 		this.PacketCodec = Codecs.MPEG4;
+		this.PacketID = PacID;
 	}
 	
-	public int getPacSize(){
+	public double getPacSize(){
 		return this.PacketSize;
 	}
 	

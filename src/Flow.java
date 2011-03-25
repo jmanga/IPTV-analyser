@@ -35,12 +35,12 @@ public class Flow {
 		this.PacketArrival = paca;
 	}
 	
-	public double GeneratePacket(double ICPac, double SizePac){
-		//this.PacketID = this.PacketID + 1;
+	public double GeneratePacket(int PacketID, double ICPac, double SizePac, int SesID){
 		this.PacketArrival = ICPac;
 		this.PacketSize = SizePac;
-		packet = new Packets();
+		packet = new Packets(PacketID, SizePac);
 		//Chamada a função para gravação dos dados passando o pacote como parametro: IDSES, IDPACK, TIMEARRIVALPACK, SIZEPACK
+		recordData(SesID, PacketID, this.PacketArrival, this.PacketSize);
 		return this.PacketID;
 	}
 }

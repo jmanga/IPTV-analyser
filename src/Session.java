@@ -1,5 +1,6 @@
 import java.io.*;
 
+
 public class Session {
 	float InitialTime;
 	int ArrivalTimeSession;
@@ -38,15 +39,17 @@ public class Session {
 	
 	public int StartSession(){
 		int PacketID = 0;
-		double ICPac,SizePac;
-		while(Time() <= this.FinalTime){
+		double ICPac = 0,SizePac, TArrive = 0;
+		ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket);
+		SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
+		while(TArrive <= this.FinalTime){
 			PacketID += 1;
+			flow.GeneratePacket(PacketID, ICPac, SizePac, this.SessionID);
 			ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket);
 			SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
-			flow.GeneratePacket(ICPac,SizePac);
+			TArrive = TArrive + ICPac;
 		}
-		
-		return SessionID;
+		return 0;
 	}
 	
 	
