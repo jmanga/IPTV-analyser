@@ -2,11 +2,11 @@ import java.io.*;
 
 public class ExponentialDistribution implements RNGenerator{
 	int u;
-	float f_x;			// value between 0 and 1 (probability function)
-	float x;			// continuous random variable 
+	double f_x;			// value between 0 and 1 (probability function)
+	double x;			// continuous random variable 
 	//float Lambda;		// Lambda value is a unit of time
 	float mean;			// 1/Lambda
-	float R;			// random number
+	double R;			// random number
 
 	
 	public ExponentialDistribution() { 
@@ -19,11 +19,11 @@ public class ExponentialDistribution implements RNGenerator{
 		return this.u;
 	}
 	
-	public float getFx(){
+	public double getFx(){
 		return this.f_x;
 	}
 	
-	public float getX(){
+	public double getX(){
 		return this.x;
 	}
 	
@@ -45,8 +45,9 @@ public class ExponentialDistribution implements RNGenerator{
 	}
 
 	@Override
-	public double GeneratedValues(float meanSizePacket) {
-		x = (float) (mean*Math.log(1-R));
+	public double GeneratedValues(double mean) {
+		R = Math.random();
+		x = (-mean*Math.log(1-R));
 		return x;
 	}
 }

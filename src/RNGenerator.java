@@ -5,7 +5,7 @@ public interface RNGenerator {
 	//String DistributionName = "";
 	
 	public abstract int StartSeed();
-	public abstract double GeneratedValues(float meanSizePacket);
+	public abstract double GeneratedValues(double meanSizePacket);
 }
 
 

@@ -7,11 +7,11 @@ public class Flow {
 	double PacketArrival;
 	//RNGenerator RandomNumberFlow;
 	int PacketID;
-	float meanSizePacket;
-	float meanArrivalPacket;
+	double meanSizePacket;
+	double meanArrivalPacket;
 	Packets packet;
 	
-	public Flow(float meanArrivPac, float meanSizePac) { 
+	public Flow(double meanArrivPac, double meanSizePac) { 
 	    this.PacketSize = 0; 
 	    this.PacketArrival = 0;
 	    this.PacketID = 0;
@@ -39,8 +39,9 @@ public class Flow {
 		this.PacketArrival = ICPac;
 		this.PacketSize = SizePac;
 		packet = new Packets(PacketID, SizePac);
+		System.out.printf("ID - ", SesID, "IDPac - ", PacketID, "T.cheg - ",  this.PacketArrival, "TamPac  - ", this.PacketSize);
 		//Chamada a função para gravação dos dados passando o pacote como parametro: IDSES, IDPACK, TIMEARRIVALPACK, SIZEPACK
-		recordData(SesID, PacketID, this.PacketArrival, this.PacketSize);
+		//recordData(SesID, PacketID, this.PacketArrival, this.PacketSize);
 		return this.PacketID;
 	}
 }

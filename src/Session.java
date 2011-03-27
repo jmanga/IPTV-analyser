@@ -2,27 +2,31 @@ import java.io.*;
 
 
 public class Session {
-	float InitialTime;
-	int ArrivalTimeSession;
-	int ArrivalTimePacket;
+	double InitialTime;
+	//int ArrivalTimeSession;
+	//int ArrivalTimePacket;
 	int SessionID;
-	float FinalTime;
-	float SessionSize;
-	float meanSizeSession;
-	float meanSizePacket;
-	float meanArrivalSession;
-	float meanArrivalPacket;
+	double FinalTime;
+	double SessionSize;
+	//double meanSizeSession;
+	double meanSizePacket;
+	//double meanArrivalSession;
+	double meanArrivalPacket;
 	Flow flow;
 	//RNGenerator RandomNumber;
 	RNGenerator[] array = new RNGenerator[4];
 
 	
-	public Session(int SesID, /*int ArrivTP,*/ float InitTime, float SesSize, float meanAP, float meanSP){
+	public Session(int SesID, /*int ArrivTP,*/ double InitTime, double SesSize, double meanAP, double meanSP){
 		this.SessionID = SesID;
 		//this.ArrivalTimePacket = ArrivTP;
 		this.SessionSize = SesSize;
 		this.InitialTime = InitTime;
 		this.FinalTime = this.InitialTime + this.SessionSize;
+		if(this.FinalTime <= this.InitialTime){
+			System.out.printf("Valor invalido pra sessão ", SesID);
+			System.exit(0);
+		}
 		//this.meanSizeSession = meanSS;
 		this.meanSizePacket = meanSP;
 		//this.meanArrivalSession = meanAS;
