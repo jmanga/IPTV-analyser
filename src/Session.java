@@ -48,7 +48,7 @@ public class Session {
 		SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
 		while(TArrive <= this.FinalTime){
 			PacketID += 1;
-			flow.GeneratePacket(PacketID, ICPac, SizePac, this.SessionID);
+			flow.GeneratePacket(PacketID, TArrive, SizePac, this.SessionID);
 			ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket);
 			SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
 			TArrive = TArrive + ICPac;

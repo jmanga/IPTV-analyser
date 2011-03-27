@@ -40,14 +40,14 @@ public class ThreadExecution{
 		
 	    Thread MainThread =  new Thread(new XThread(),"MainThread");
 	    
-	    Thread[] ThreadsArray = new Thread[ThreadQuantity]; 
+	    Thread[] ThreadsArray = new Thread[ThreadQuantity+1]; 
 
 	    //Start the threads
 	    MainThread.start();
 
 	    RNGenerator Receiver = new ExponentialDistribution();
    
-	    for(int id = 0; id < ThreadQuantity; id++){
+	    for(int id = 1; id < ThreadQuantity+1; id++){
 	    	Thread Thread =  new Thread(new XThread(),"Sessão"+id);   	
 	    	ThreadsArray[id] = Thread;
 	    	ThreadsArray[id].start();
@@ -58,7 +58,7 @@ public class ThreadExecution{
 		    
 	    	Session Initiate = new Session(id, InitTimeSession, SessionSize, MeanArrivalPacket, MeanSizePacket);
 	    	Initiate.StartSession();
-	    	System.out.println(Initiate.InitialTime);
+	    	//System.out.println(Initiate.InitialTime);
 	    }
 	    
 	        

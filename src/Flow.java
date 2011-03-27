@@ -39,7 +39,8 @@ public class Flow {
 		this.PacketArrival = ICPac;
 		this.PacketSize = SizePac;
 		packet = new Packets(PacketID, SizePac);
-		System.out.printf("ID - ", SesID, "IDPac - ", PacketID, "T.cheg - ",  this.PacketArrival, "TamPac  - ", this.PacketSize);
+
+		System.out.printf("ID - %d IDPac - %d T.cheg - %f TamPac  - %f\n", SesID, PacketID,  this.PacketArrival, this.PacketSize);
 		//Chamada a função para gravação dos dados passando o pacote como parametro: IDSES, IDPACK, TIMEARRIVALPACK, SIZEPACK
 		//recordData(SesID, PacketID, this.PacketArrival, this.PacketSize);
 		return this.PacketID;
