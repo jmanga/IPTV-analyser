@@ -3,21 +3,35 @@ public class Packets {
 	double PacketSize;
 	int PacketID;
 	Codecs PacketCodec;
+	double PacketArrival;
+	int SessionID;
 
-	public Packets(int PacID, double PacS, String cod){
-		this.PacketSize = PacS;
+	public Packets(int SesID, int PacID, double PacArrival, double PacSize, String cod){
+		this.PacketSize = PacSize;
 		this.PacketCodec = Codecs.valueOf(cod);
 		this.PacketID = PacID;
+		this.SessionID = SesID;
+		this.PacketArrival = PacArrival;
 	}
 	
-	public Packets(int PacID, double PacS){
-		this.PacketSize = 0;
+	public Packets(int SesID, int PacID, double PacArrival, double PacSize){
+		this.PacketSize = PacSize;
 		this.PacketCodec = Codecs.MPEG4;
 		this.PacketID = PacID;
+		this.SessionID = SesID;
+		this.PacketArrival = PacArrival;
 	}
 	
 	public double getPacSize(){
 		return this.PacketSize;
+	}
+	
+	public int getSesID(){
+		return this.SessionID;
+	}
+	
+	public double getPacArriv(){
+		return this.PacketArrival;
 	}
 	
 	public int getPacID(){
@@ -36,6 +50,10 @@ public class Packets {
 		this.PacketID = pacid;
 	}
 	
+	public void setPacArriv(int pacarr){
+		this.PacketArrival = pacarr;
+	}
+
 	public void setPacCod(Codecs cod){
 		this.PacketCodec = cod;
 	}

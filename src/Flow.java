@@ -38,11 +38,16 @@ public class Flow {
 	public double GeneratePacket(int PacketID, double ICPac, double SizePac, int SesID){
 		this.PacketArrival = ICPac;
 		this.PacketSize = SizePac;
-		packet = new Packets(PacketID, SizePac);
+		packet = new Packets(SesID, PacketID, this.PacketArrival, this.PacketSize);
 
 		System.out.printf("ID - %d IDPac - %d T.cheg - %f TamPac  - %f\n", SesID, PacketID,  this.PacketArrival, this.PacketSize);
 		//Chamada a função para gravação dos dados passando o pacote como parametro: IDSES, IDPACK, TIMEARRIVALPACK, SIZEPACK
-		//recordData(SesID, PacketID, this.PacketArrival, this.PacketSize);
+		try {
+			ThreadExecution.recordData(packet);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return this.PacketID;
 	}
 }

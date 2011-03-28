@@ -52,10 +52,10 @@ public class ThreadExecution{
 	    	ThreadsArray[id] = Thread;
 	    	ThreadsArray[id].start();
 	    	
-		    InitTimeSession = Receiver.GeneratedValues((double) MeanArrivalSession);
-		    SessionTime = Receiver.GeneratedValues((double) MeanArrivalSession);
+		    InitTimeSession = InitTimeSession + Receiver.GeneratedValues((double) MeanArrivalSession);
 		    SessionSize = Receiver.GeneratedValues((double) MeanSizeSession);
-		    
+	
+		    System.out.println("Session - " + InitTimeSession);
 	    	Session Initiate = new Session(id, InitTimeSession, SessionSize, MeanArrivalPacket, MeanSizePacket);
 	    	Initiate.StartSession();
 	    	//System.out.println(Initiate.InitialTime);
@@ -72,4 +72,22 @@ public class ThreadExecution{
 	    //System.out.println(Thread.currentThread()); 
 	    
 	}
+	
+	public static void recordData(Packets pac) throws InterruptedException{
+		int SesID, PacID;
+		double TimeArrival, SizePac;
+		Sem semaphore = new Sem(1);
+		OutputFile Rec = new OutputFile();
+		
+		SesID = pac.getSesID();
+		PacID = pac.getPacID();
+		TimeArrival = pac.getPacArriv();
+		SizePac = pac.getPacSize();
+						
+		semaphore.Wait();
+		
+		semaphore.Signal();
+	}
 }
+
+

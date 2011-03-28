@@ -43,7 +43,7 @@ public class Session {
 	
 	public int StartSession(){
 		int PacketID = 0;
-		double ICPac = 0,SizePac, TArrive = 0;
+		double ICPac = 0,SizePac, TArrive = this.InitialTime;
 		ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket);
 		SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
 		while(TArrive <= this.FinalTime){
