@@ -48,7 +48,7 @@ public class ThreadExecution{
 	    RNGenerator Receiver = new ExponentialDistribution();
    
 	    for(int id = 1; id < ThreadQuantity+1; id++){
-	    	Thread Thread =  new Thread(new XThread(),"Sessão"+id);   	
+	    	Thread Thread =  new Thread(new XThread(),"Sessï¿½o"+id);   	
 	    	ThreadsArray[id] = Thread;
 	    	ThreadsArray[id].start();
 	    	
@@ -76,7 +76,7 @@ public class ThreadExecution{
 	public static void recordData(Packets pac) throws InterruptedException{
 		int SesID, PacID;
 		double TimeArrival, SizePac;
-		Sem semaphore = new Sem(1);
+		Sem semaphore = new Sem(10);
 		OutputFile Rec = new OutputFile("IPTVdata.txt");
 		
 		SesID = pac.getSesID();
