@@ -42,12 +42,12 @@ public class Flow {
 
 		System.out.printf("ID - %d IDPac - %d T.cheg - %f TamPac  - %f\n", SesID, PacketID,  this.PacketArrival, this.PacketSize);
 		//Chamada a função para gravação dos dados passando o pacote como parametro: IDSES, IDPACK, TIMEARRIVALPACK, SIZEPACK
-		try {
+		/*try {
 			ThreadExecution.recordData(packet);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		return this.PacketID;
 	}
 }

@@ -77,15 +77,22 @@ public class ThreadExecution{
 		int SesID, PacID;
 		double TimeArrival, SizePac;
 		Sem semaphore = new Sem(1);
-		OutputFile Rec = new OutputFile();
+		OutputFile Rec = new OutputFile("IPTVdata.txt");
 		
 		SesID = pac.getSesID();
 		PacID = pac.getPacID();
 		TimeArrival = pac.getPacArriv();
 		SizePac = pac.getPacSize();
-						
-		semaphore.Wait();
+		String str = Integer.toString(SesID) + "\t\t" + Integer.toString(PacID) + 
+				"\t\t" + Double.toString(TimeArrival) + "\t\t" + Double.toString(SizePac) + "\n";
 		
+		semaphore.Wait();
+		try {
+			Rec.WriteFile(str);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		semaphore.Signal();
 	}
 }
