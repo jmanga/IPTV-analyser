@@ -18,17 +18,13 @@ public class ThreadExecution{
 	static double SessionTime = 0;
 	static double SessionSize = 0;
 	
+	static boolean check = false;
+	static OutputFile Rec = new OutputFile("IPTVdata.txt");
 
 	public static void main(String[] args) throws IOException, InterruptedException{
 
 		String bullet = JOptionPane.showInputDialog("Enter with the quantity of sessions");  
 		ThreadQuantity = Integer.parseInt(bullet);
-		//bullet = JOptionPane.showInputDialog("Enter with the mean of packet size");  
-		//MeanSizePacket = Integer.parseInt(bullet);
-		//bullet = JOptionPane.showInputDialog("Enter with the mean of packet arrival");  
-		//MeanArrivalPacket = Integer.parseInt(bullet);
-		//bullet = JOptionPane.showInputDialog("Enter with the mean of session size");  
-		//MeanSizeSession = Integer.parseInt(bullet);
 		bullet = JOptionPane.showInputDialog("Enter with the mean of session arrival");  
 		MeanArrivalSession = Integer.parseInt(bullet);
 		bullet = JOptionPane.showInputDialog("Enter with the mean of session size");  
@@ -55,7 +51,6 @@ public class ThreadExecution{
 		    InitTimeSession = InitTimeSession + Receiver.GeneratedValues((double) MeanArrivalSession);
 		    SessionSize = Receiver.GeneratedValues((double) MeanSizeSession);
 	
-		    System.out.println("Session - " + InitTimeSession);
 	    	Session Initiate = new Session(id, InitTimeSession, SessionSize, MeanArrivalPacket, MeanSizePacket);
 	    	Initiate.StartSession();
 	    	//System.out.println(Initiate.InitialTime);
@@ -77,23 +72,22 @@ public class ThreadExecution{
 		int SesID, PacID;
 		double TimeArrival, SizePac;
 		Sem semaphore = new Sem(10);
-		OutputFile Rec = new OutputFile("IPTVdata.txt");
 		
 		SesID = pac.getSesID();
 		PacID = pac.getPacID();
 		TimeArrival = pac.getPacArriv();
 		SizePac = pac.getPacSize();
-		String str = Integer.toString(SesID) + "\t\t" + Integer.toString(PacID) + 
-				"\t\t" + Double.toString(TimeArrival) + "\t\t" + Double.toString(SizePac) + "\n";
+		String str = Integer.toString(SesID) + "\t" + Integer.toString(PacID) + 
+				"\t" + Double.toString(TimeArrival) + "\t\t" + Double.toString(SizePac) + "\n";
 		
 		semaphore.Wait();
 		try {
-			Rec.WriteFile(str);
+			check = Rec.WriteFile(str, check);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		semaphore.Signal();
+		pac = null;
 	}
 }
 

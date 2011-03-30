@@ -9,7 +9,7 @@ public class Sem {
 	
 	public Sem(int count) {
 		this.Count = count;
-                s = new Semaphore(Count);
+        s = new Semaphore(Count);
 	}
 
 	public void Wait() throws InterruptedException{

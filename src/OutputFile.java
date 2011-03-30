@@ -5,27 +5,31 @@ public class OutputFile {
       //FileOutputStream Print;
 	  FileWriter writer;
 	  String FileName;
-      PrintStream p;
-      
+
       public OutputFile(String Fname){
     	  this.FileName = Fname;
       }
       
-      public int WriteFile(String str) throws FileNotFoundException{
-            //Print = new FileOutputStream(this.FileName, true);
-            //p = new PrintStream(Print);
-            //p.write(str);
+      public boolean WriteFile(String str, boolean check) throws FileNotFoundException{
+
     	  try {
-			writer = new FileWriter(new File(this.FileName),true);
-			writer.write(str);
+    		if(check == false){
+    			this.writer = new FileWriter(new File(this.FileName),false);
+    			check = true;
+    		}
+    		else this.writer = new FileWriter(new File(this.FileName),true);
+    		PrintWriter out = new PrintWriter(this.writer);
+			out.println(str);
+			this.writer.close();
+			out.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	  return 0;
+    	  return check;
       }
       
       public int Order(){
     	  return 0;
       }
 }
+
