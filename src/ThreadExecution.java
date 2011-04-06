@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.concurrent.Semaphore;
+import java.text.DecimalFormat;
 
 import javax.swing.JOptionPane;
 
@@ -10,6 +11,7 @@ public class ThreadExecution{
 	
 	static boolean check = false;
 	static OutputFile Rec = new OutputFile("IPTVdata.txt");
+	static DecimalFormat df = new DecimalFormat("#.############");
 	
 	public static void main(String[] args) throws IOException, InterruptedException{
 	    //Start the Main Thread
@@ -21,20 +23,20 @@ public class ThreadExecution{
     	for(int id = 1; id <= Graphics.returnThreadQ(); id++){
     		new XThread("Session" + id, id, sem).start();
     	}
-    	
 	}
 	
-	public static void recordData(Packets pac, Semaphore s) throws InterruptedException{
+	public static synchronized void recordData(Packets pac, Semaphore s) throws InterruptedException{
 		int SesID, PacID;
 		double TimeArrival, SizePac;
 		Sem semaphore = new Sem(s);
-		
+
 		SesID = pac.getSesID();
 		PacID = pac.getPacID();
 		TimeArrival = pac.getPacArriv();
 		SizePac = pac.getPacSize();
+
 		String str = Integer.toString(SesID) + "\t" + Integer.toString(PacID) + 
-				"\t" + Double.toString(TimeArrival) + "\t\t" + Double.toString(SizePac) + "\n";
+				"\t" + df.format(TimeArrival) + "\t\t" + df.format(SizePac) + "\n";
 		
 		//semaphore.Wait();
 		try{

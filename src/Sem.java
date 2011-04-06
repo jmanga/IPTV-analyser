@@ -10,11 +10,11 @@ public class Sem {
         s = sem;
 	}
 
-	public void Wait() throws InterruptedException{
+	public synchronized void Wait() throws InterruptedException{
 		s.acquire();
 	}
 	
-	public void Signal() throws InterruptedException{
+	public synchronized void Signal() throws InterruptedException{
 		s.release();
 	}
 }
