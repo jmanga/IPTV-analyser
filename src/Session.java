@@ -1,5 +1,5 @@
 import java.io.*;
-
+import java.util.concurrent.Semaphore;
 
 public class Session {
 	double InitialTime;
@@ -15,9 +15,9 @@ public class Session {
 	Flow flow;
 	//RNGenerator RandomNumber;
 	RNGenerator[] array = new RNGenerator[4];
-
+	Semaphore sem;
 	
-	public Session(int SesID, double InitTime, double SesSize, double meanAP, double meanSP){
+	public Session(int SesID, double InitTime, double SesSize, double meanAP, double meanSP, Semaphore s){
 		this.SessionID = SesID;
 		this.SessionSize = SesSize;
 		this.InitialTime = InitTime;
@@ -26,10 +26,12 @@ public class Session {
 			System.out.printf("Valor invalido pra sessão ", SesID);
 			System.exit(0);
 		}
+		this.sem = s;
 		this.meanSizePacket = meanSP;
 		this.meanArrivalPacket = meanAP;
-		this.flow = new Flow(this.meanArrivalPacket, this.meanSizePacket);
+		this.flow = new Flow(this.meanArrivalPacket, this.meanSizePacket, this.sem);
 		array[0]= new ExponentialDistribution();
+		
 	}
 	
 	public int Time(){

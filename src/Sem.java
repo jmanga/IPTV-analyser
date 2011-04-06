@@ -3,13 +3,11 @@ import java.io.*;
 
 
 public class Sem {
-	int Count;
 	Semaphore s;
 	
 	
-	public Sem(int count) {
-		this.Count = count;
-        s = new Semaphore(Count);
+	public Sem(Semaphore sem) {
+        s = sem;
 	}
 
 	public void Wait() throws InterruptedException{

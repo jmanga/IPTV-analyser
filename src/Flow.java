@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.concurrent.Semaphore;
 
 // variavel tempo de geração de pacotes, tempo não zera, soh aumenta
 
@@ -10,13 +11,15 @@ public class Flow {
 	double meanSizePacket;
 	double meanArrivalPacket;
 	Packets packet;
+	Semaphore sem;
 	
-	public Flow(double meanArrivPac, double meanSizePac) { 
+	public Flow(double meanArrivPac, double meanSizePac, Semaphore s) { 
 	    this.PacketSize = 0; 
 	    this.PacketArrival = 0;
 	    this.PacketID = 0;
 	    this.meanArrivalPacket = meanArrivPac;
 	    this.meanSizePacket = meanSizePac;
+	    this.sem = s;
 	}
 	
 	public double getPacketsize(){
@@ -43,7 +46,7 @@ public class Flow {
 		System.out.printf("ID - %d IDPac - %d T.cheg - %f TamPac  - %f\n", SesID, PacketID,  this.PacketArrival, this.PacketSize);
 		//Chamada a função para gravação dos dados passando o pacote como parametro: IDSES, IDPACK, TIMEARRIVALPACK, SIZEPACK
 		try {
-			ThreadExecution.recordData(packet);
+			ThreadExecution.recordData(packet, this.sem);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
