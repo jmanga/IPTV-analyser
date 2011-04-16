@@ -1,4 +1,3 @@
-
 public enum Codecs{
 	MPEG4, MPEG2
 }
@@ -8,4 +7,8 @@ public enum Codecs{
 	public Codecs(Cod codec){
 		this.codec = codec;
 	}
+
+
+
+
 }*/
