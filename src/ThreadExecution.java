@@ -10,6 +10,7 @@ import java.io.*;
 public class ThreadExecution{
 	
 	static boolean check = false;
+	static int contWr = 0, times = 0;
 	static OutputFile Rec = new OutputFile("IPTVdata.txt");
 	static DecimalFormat df = new DecimalFormat("#.############");
 	
@@ -36,14 +37,21 @@ public class ThreadExecution{
 		SizePac = pac.getPacSize();
 
 		String str = Integer.toString(SesID) + "\t" + Integer.toString(PacID) + 
-				"\t" + df.format(TimeArrival) + "\t\t" + df.format(SizePac) + "\n";
+				"\t" + df.format(TimeArrival) + "\t\t" + df.format(SizePac);
 		
 		//semaphore.Wait();
 		try{
 			semaphore.Wait();
 			check = Rec.WriteFile(str, check);
+			contWr++;
+			if(contWr == 3) {
+				times++;
+				Rec.Order(times);
+				contWr = 0;
+			}
 			semaphore.Signal();
 		} catch (FileNotFoundException e) {
+			System.out.printf("Error semaphore");
 			e.printStackTrace();
 		}
 		//semaphore.Signal();

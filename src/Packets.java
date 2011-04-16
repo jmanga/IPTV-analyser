@@ -5,6 +5,7 @@ public class Packets {
 	Codecs PacketCodec;
 	double PacketArrival;
 	int SessionID;
+	char FrameType;
 
 	public Packets(int SesID, int PacID, double PacArrival, double PacSize, String cod){
 		this.PacketSize = PacSize;
@@ -20,6 +21,15 @@ public class Packets {
 		this.PacketID = PacID;
 		this.SessionID = SesID;
 		this.PacketArrival = PacArrival;
+	}
+	
+	public Packets(int SesID, int PacID, double PacArrival, double PacSize, char FType){
+		this.PacketSize = PacSize;
+		this.PacketCodec = Codecs.MPEG4;
+		this.PacketID = PacID;
+		this.SessionID = SesID;
+		this.PacketArrival = PacArrival;
+		this.FrameType = FType;
 	}
 	
 	public double getPacSize(){

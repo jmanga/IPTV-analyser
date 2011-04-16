@@ -1,5 +1,9 @@
 import java.io.*;
 import java.util.concurrent.Semaphore;
+import java.lang.*;
+ 
+import cern.jet.random.engine.RandomEngine;
+import cern.jet.stat.Probability;
 
 // variavel tempo de geração de pacotes, tempo não zera, soh aumenta
 
