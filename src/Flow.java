@@ -42,6 +42,7 @@ public class Flow {
 		this.PacketArrival = paca;
 	}
 	
+	//Método tradicional para gerar os pacotes
 	public double GeneratePacket(int PacketID, double ICPac, double SizePac, int SesID){
 		this.PacketArrival = ICPac;
 		this.PacketSize = SizePac;
@@ -56,5 +57,11 @@ public class Flow {
 			e.printStackTrace();
 		}
 		return this.PacketID;
+	}
+	
+	//Essa função gera os frames do GOP e estes geram os pacotes
+	public void GenerateFrame(){
+		//Packets[] pac = new Packets[];
+		
 	}
 }

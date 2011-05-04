@@ -1,4 +1,7 @@
 
+import java.util.ArrayList;
+
+
 public class Packets {
 	double PacketSize;
 	int PacketID;
@@ -6,14 +9,16 @@ public class Packets {
 	double PacketArrival;
 	int SessionID;
 	char FrameType;
+	
 
-	public Packets(int SesID, int PacID, double PacArrival, double PacSize, String cod){
+	/*public Packets(int SesID, int PacID, double PacArrival, double PacSize, String cod){
 		this.PacketSize = PacSize;
 		this.PacketCodec = Codecs.valueOf(cod);
 		this.PacketID = PacID;
 		this.SessionID = SesID;
 		this.PacketArrival = PacArrival;
-	}
+		
+	}*/
 	
 	public Packets(int SesID, int PacID, double PacArrival, double PacSize){
 		this.PacketSize = PacSize;
@@ -52,6 +57,10 @@ public class Packets {
 		return this.PacketCodec;
 	}
 	
+	public char getFType(){
+		return this.FrameType;
+	}
+	
 	public void setPacSize(int pacs){
 		this.PacketSize = pacs;
 	}
@@ -68,3 +77,4 @@ public class Packets {
 		this.PacketCodec = cod;
 	}
 }
+

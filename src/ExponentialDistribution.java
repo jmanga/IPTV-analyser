@@ -1,3 +1,4 @@
+
 import java.io.*;
 
 public class ExponentialDistribution implements RNGenerator{
@@ -41,13 +42,18 @@ public class ExponentialDistribution implements RNGenerator{
 	
 	@Override
 	public int StartSeed(){
-		return 0;
+		if(this.x >= 0 && this.x <= 1) return 1;
+		else return 0;
 	}
 
+	//
 	@Override
 	public double GeneratedValues(double mean) {
 		R = Math.random();
 		x = (-mean*Math.log(1-R));
+		//int valid = StartSeed();
+		//if(valid == 1) System.out.printf("Valid Number for exponential distribution.\n");
+		//else System.out.printf("Invalid Number for exponential distribution.\n");
 		return x;
 	}
 }

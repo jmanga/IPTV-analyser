@@ -1,3 +1,4 @@
+
 import javax.swing.JOptionPane;
 
 
@@ -7,19 +8,13 @@ public class Graphics {
 	static String DT = null;
 	static double DI = 0;
 	
-	static double MeanSizePacket;
-	static double MeanArrivalPacket;
-	static double MeanSizeSession;
-	static double MeanArrivalSession;
-	
 	static String bullet = null;
 	String[] Catch = null;
 	static String s = null;
 	
-	static double TimeSession;
-	static double TimePackets;
-	static double MountSession;
-	static double MountPackets;
+	static double SizeSessions;
+	static double ArrivalPackets;
+	static double ArrivalSessions;
 	
 	public Graphics(){
 		
@@ -32,26 +27,22 @@ public class Graphics {
 		bullet = JOptionPane.showInputDialog("Enter with the quantity of sessions");  
 		ThreadQuantity = Integer.parseInt(bullet);
 		
+		
 		if(s == "Exponential Distribution"){
-			bullet = JOptionPane.showInputDialog("Enter with the mean of session arrival");  
-			MeanArrivalSession = Double.parseDouble(bullet);
-			bullet = JOptionPane.showInputDialog("Enter with the mean of session size");  
-			MeanSizeSession = Double.parseDouble(bullet);
-			bullet = JOptionPane.showInputDialog("Enter with the mean of packet arrival");  
-			MeanArrivalPacket = Double.parseDouble(bullet);
-			bullet = JOptionPane.showInputDialog("Enter with the mean of packet size");  
-			MeanSizePacket = Double.parseDouble(bullet);
+			bullet = JOptionPane.showInputDialog("Enter with the mean of sessions arrival");  
+			ArrivalSessions = Double.parseDouble(bullet);
+			bullet = JOptionPane.showInputDialog("Enter with the mean of sessions size");  
+			SizeSessions = Double.parseDouble(bullet);
+			bullet = JOptionPane.showInputDialog("Enter with the mean of packets arrival");  
+			ArrivalPackets = Double.parseDouble(bullet);
 		}
 		else if(s == "Constant Values Distribution"){
-			bullet = JOptionPane.showInputDialog("Enter with the session time (in seconds)");  
-			TimeSession = Double.parseDouble(bullet);
-			bullet = JOptionPane.showInputDialog("Enter with the packets time (in seconds)");
-			TimePackets = Double.parseDouble(bullet);
-			bullet = JOptionPane.showInputDialog("Enter with the mount of time (in seconds)");  
-			MountSession = Double.parseDouble(bullet);
-			bullet = JOptionPane.showInputDialog("Enter with the mount of packets (in seconds)");
-			MountPackets = Double.parseDouble(bullet);
-			
+			bullet = JOptionPane.showInputDialog("Enter with the fixed arrival of sessions (in seconds)");
+			ArrivalSessions = Double.parseDouble(bullet);
+			bullet = JOptionPane.showInputDialog("Enter with the fixed sessions size (in seconds)");  
+			SizeSessions = Double.parseDouble(bullet);
+			bullet = JOptionPane.showInputDialog("Enter with the fixed arrival of packets (in seconds)");  
+			ArrivalPackets = Double.parseDouble(bullet);			
 		}
 
 	}
@@ -66,4 +57,6 @@ public class Graphics {
 		return s;
 	}
 }
+
+
 

@@ -2,10 +2,10 @@ import java.util.concurrent.Semaphore;
 
 class XThread extends Thread {
 
-	static double InitTimeSession;
+	static double PacketsArrival;
+	static double SessionsArrival;
 	static double SessionSize;
-	static double MeanArrivalPacket;
-	static double MeanSizePacket;
+
 	private int id;
 	Semaphore semap;
 	
@@ -18,24 +18,32 @@ class XThread extends Thread {
 	}
 
 	public void run() {
+		
+		double Error = 5;
+		double CorrelationIP = 5;
+		double StandardDeviationP = 5;
+		double StandardDeviationI = 5;
+		
 		if (Graphics.returnDistribution() == "Exponential Distribution") {
-			InitTimeSession = Rand.GeneratedValues(Graphics.MeanArrivalSession);
-			SessionSize = Rand.GeneratedValues(Graphics.MeanSizeSession);
-			MeanArrivalPacket = Rand
-					.GeneratedValues(Graphics.MeanArrivalPacket);
-			MeanSizePacket = Rand.GeneratedValues(Graphics.MeanSizePacket);
+			SessionsArrival = Rand.GeneratedValues(Graphics.ArrivalSessions);
+			SessionSize = Rand.GeneratedValues(Graphics.SizeSessions);
+			PacketsArrival = Rand.GeneratedValues(Graphics.ArrivalPackets);
+
 		}
 		if (Graphics.returnDistribution() == "Constant Values Distribution") {
-			InitTimeSession = Graphics.TimeSession;
-			SessionSize = Graphics.MountSession;
-			MeanArrivalPacket = Graphics.TimePackets;
-			MeanSizePacket = Graphics.MountPackets;
+			SessionsArrival = Rand.GeneratedValues(Graphics.ArrivalSessions);
+			SessionSize = Rand.GeneratedValues(Graphics.SizeSessions);
+			PacketsArrival = Rand.GeneratedValues(Graphics.ArrivalPackets);
+			
 		}
-		Session Initiate = new Session(id, InitTimeSession, SessionSize,
-				MeanArrivalPacket, MeanSizePacket, semap);
-		Initiate.StartSession();
-		InitTimeSession += Rand.GeneratedValues(Graphics.MeanArrivalSession);
+		Session Initiate = new Session(id, SessionsArrival, SessionSize, PacketsArrival, semap,
+				Error, CorrelationIP, StandardDeviationP, StandardDeviationI);
+		Initiate.StartSession(1,0,0);	// método tradicional ou fodão (futuro)
+		SessionsArrival += Rand.GeneratedValues(Graphics.ArrivalSessions);
 	}
 
 }
+
+
+
 

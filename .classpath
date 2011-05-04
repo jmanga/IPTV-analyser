@@ -3,5 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="C:/Users/Jean/Downloads/colt-1.2.0/colt/lib/colt.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Jean/Downloads/VE-Update-1.5.0/artifacts.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Jean/Downloads/VE-Update-1.5.0/content.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

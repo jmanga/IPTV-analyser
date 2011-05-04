@@ -1,3 +1,4 @@
+
 import java.io.*;
 
 public class OutputFile {
@@ -11,8 +12,7 @@ public class OutputFile {
       }
       
       public boolean WriteFile(String str, boolean check) throws FileNotFoundException{
-
-    	  try {
+    	try {
     		if(check == false){
     			this.writer = new FileWriter(new File(this.FileName),false);
     			check = true;
@@ -65,4 +65,5 @@ public class OutputFile {
     	  return 0;
       }
 }
+
 

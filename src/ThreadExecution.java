@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 import java.text.DecimalFormat;
 
@@ -20,10 +21,11 @@ public class ThreadExecution{
 		MainThread.start();
 	    new Graphics();
 	    Semaphore sem = new Semaphore(Graphics.ThreadQuantity, true);
-	    
+	      
     	for(int id = 1; id <= Graphics.returnThreadQ(); id++){
     		new XThread("Session" + id, id, sem).start();
     	}
+   	
 	}
 	
 	public static synchronized void recordData(Packets pac, Semaphore s) throws InterruptedException{

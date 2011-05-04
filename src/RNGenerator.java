@@ -1,3 +1,4 @@
+
 import java.io.*;
 
 public interface RNGenerator {
@@ -7,5 +8,3 @@ public interface RNGenerator {
 	public abstract int StartSeed();
 	public abstract double GeneratedValues(double meanSizePacket);
 }
-
-
