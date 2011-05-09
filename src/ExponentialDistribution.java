@@ -48,7 +48,7 @@ public class ExponentialDistribution implements RNGenerator{
 
 	//
 	@Override
-	public double GeneratedValues(double mean) {
+	public double GeneratedValues(double mean, double arg) {
 		R = Math.random();
 		x = (-mean*Math.log(1-R));
 		//int valid = StartSeed();

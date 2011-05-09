@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-
-
 public class Frame {
 	double SizeI;
 	double lastValueP;
@@ -49,7 +47,7 @@ public class Frame {
 	public void GenerateDist(){
 		this.array[0] = new ExponentialDistribution();
 		//this.array[1] = new valores fixos;
-		//this.array[2] = new GammaDistribution();
+		this.array[2] = new GammaDistribution();
 		//this.array[3] = new ParetoDistribution();
 	}
 	
@@ -64,11 +62,6 @@ public class Frame {
 		return this.PacketID++;
 	}
 	
-	//Esse método deve ser inserido para o caso de o usuário definir um intervalo entre os pacotes
-	/*public double GenTimePacket(double TimePac){
-		return TimePac + PacInterval;
-	}*/
-	
 	//Método que cálcula o tamanho do Frame I e pede pra gerar os pacotes
 	public synchronized int CalcFrameI(){
 		this.SizeI = 1500; //por enquanto valor fixo, depois valor vindo de distribuição
@@ -79,7 +72,7 @@ public class Frame {
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
 	public synchronized double CalcFrameP(double TArrive){
 		
-		double Error = this.array[0].GeneratedValues(this.MeanError);
+		double Error = this.array[0].GeneratedValues(this.MeanError, 0);
 		if(this.FirstP){ //Primeiro P do GOP é calcula dessa forma
 			this.lastValueP = this.SizeI*(this.correlationIP*this.StdDeviationP)/this.StdDeviationI + Error;
 		}
@@ -92,7 +85,7 @@ public class Frame {
 	
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
 	public synchronized int CalcFrameB(double TArrive){
-		double Error = this.array[0].GeneratedValues(this.MeanError);
+		double Error = this.array[0].GeneratedValues(this.MeanError, 0);
 		if(this.FirstB){ //Primeiro P do GOP é calcula dessa forma
 			this.lastValueB = this.lastValueP*(this.correlationPB*this.StdDeviationB)/this.StdDeviationP + Error;
 		}

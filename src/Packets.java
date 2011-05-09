@@ -11,15 +11,6 @@ public class Packets {
 	char FrameType;
 	
 
-	/*public Packets(int SesID, int PacID, double PacArrival, double PacSize, String cod){
-		this.PacketSize = PacSize;
-		this.PacketCodec = Codecs.valueOf(cod);
-		this.PacketID = PacID;
-		this.SessionID = SesID;
-		this.PacketArrival = PacArrival;
-		
-	}*/
-	
 	public Packets(int SesID, int PacID, double PacArrival, double PacSize){
 		this.PacketSize = PacSize;
 		this.PacketCodec = Codecs.MPEG4;

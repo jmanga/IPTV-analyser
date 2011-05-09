@@ -26,12 +26,14 @@ public class Session extends Thread{
 	int distanceP;
 	String NextFrame;
 	int contFrame;
+	boolean flag;
 	
 
 	//Construtor para tipo de sistema usando frames
 	public Session(int SesID, double InitTime, double SesSize, double meanAP, double ErrorFrames, int TypeErrDist, 
 			double CorrelationIP, double CorrelationPB, double StandardDeviationP, double StandardDeviationI, 
 			double StandardDeviationB, int PacSize, Semaphore s, String typeGOP){
+		this.flag = false;
 		this.SessionID = SesID;
 		this.SessionSize = SesSize;
 		this.InitialTime = InitTime;
@@ -56,12 +58,12 @@ public class Session extends Thread{
 		this.qtFrames = Integer.parseInt(this.GOPtype.split(",")[0]);
 		this.distanceP = Integer.parseInt(this.GOPtype.split(",")[1]);
 		this.contFrame = 1;
-		//this.flow = new Flow(this.meanArrivalPacket, this.meanSizePacket, this.sem);
+
 	}
 	
 
 	//Construtor para tipo de sistema tradicional
-	public Session(int SesID, double InitTime, double SesSize, double meanAP, double meanSP, Semaphore s){
+	public Session(int SesID, double InitTime, double SesSize, double meanAP, double meanSP, Sem s){
 		this.SessionID = SesID;
 		this.SessionSize = SesSize;
 		this.InitialTime = InitTime;
@@ -70,22 +72,26 @@ public class Session extends Thread{
 			System.out.printf("Valor invalido pra sessão ", SesID);
 			System.exit(0);
 		}
-		this.sem = s;
+		//this.sem = s;
 		this.meanSizePacket = meanSP;
 		this.meanArrivalPacket = meanAP;
-		//this.flow = new Flow(this.meanArrivalPacket, this.meanSizePacket, this.sem);
 	}
 	
 	//método que instancia as distribuições utilizadas no projeto em um array
 	public void GenerateDist(){
 		this.array[0] = new ExponentialDistribution();
 		//this.array[1] = new valores fixos;
-		//this.array[2] = new GammaDistribution();
+		this.array[2] = new GammaDistribution();
 		//this.array[3] = new ParetoDistribution();
 	}
 	
 	public void run(){
-		this.StartSession(2);
+		try {
+			this.StartSession(2);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	//método que verifica se próximo frame a ser gravado é P ou B de acordo com escolha do tipo de GOP
@@ -101,15 +107,15 @@ public class Session extends Thread{
 	}
 	
 	//Inicializa a sessão verificando tipo do sistema: tradicional ou por GOP
-	public int StartSession(int typeSystem){
+	public int StartSession(int typeSystem) throws InterruptedException{
 		double TArrive = this.InitialTime;
 		if(typeSystem == 1){
 			double ICPac = 0, SizePac;
-			ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket);
+			ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
 			//SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
 			while(TArrive <= this.FinalTime){
 				//this.GeneratePacket(TArrive, SizePac, this.SessionID);
-				ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket);
+				ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
 				//SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
 				TArrive = TArrive + ICPac;
 			}
@@ -118,33 +124,19 @@ public class Session extends Thread{
 		return 0;
 	}
 	
-	/*
-	//Método tradicional para gerar os pacotes
-	public double GeneratePacket(double ICPac, double SizePac){
-		packet = new Packets(this.SessionID, PacketID, this.PacketArrival, this.PacketSize);
 
-		System.out.printf("ID - %d IDPac - %d T.cheg - %f TamPac  - %f\n", SesID, PacketID,  this.PacketArrival, this.PacketSize);
-		//Chamada a função para gravação dos dados passando o pacote como parametro: IDSES, IDPACK, TIMEARRIVALPACK, SIZEPACK
-		try {
-			Simulator.recordData(packet, this.sem);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return this.PacketID;
-	}*/
-	
 	//Essa função gera os frames do GOP e estes geram os pacotes
-	public void GenerateFrame(){
+	public void GenerateFrame() throws InterruptedException{
 		double timeLastPac = 0, TArrive = this.InitialTime;
 		int contFrames;
+		String nxFrame;
 		while(TArrive <= this.FinalTime){ //Enquanto não atingir tempo final da sessão
 			contFrames = 0;
 			this.frame = new Frame(this.SessionID, this.meanArrivalPacket, this.CorrelationIP, this.CorrelationPB, this.StandardDeviationP, 
 				this.StandardDeviationI, this.StandardDeviationB,this.MeanErrorFrames, this.PacketSize, TArrive);
 			this.frame.CalcFrameI(); //Frame I é sempre o primeiro de um GOP
-			String nxFrame;
-			TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket);
+			this.flag = true;
+			TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
 			if(TArrive >= this.FinalTime) break;
 			while(contFrames <= this.qtFrames){ //de acordo com  tipo de GOP passado, faz a gravação de frames P e B
 				nxFrame = this.VerifyNextFrame();
@@ -157,11 +149,22 @@ public class Session extends Thread{
 					}
 					else System.out.printf("ErrorFramesGenerate");
 				}
-				TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket);
+				TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
 				if(TArrive >= this.FinalTime) break;
 				contFrames++;
 			}
 		}
+		this.sem.release();
+	}
+
+
+	public boolean getFlag() {
+		return flag;
+	}
+
+
+	public void setFlag(boolean flag) {
+		this.flag = flag;
 	}
 
 

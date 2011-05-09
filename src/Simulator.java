@@ -12,7 +12,7 @@ public class Simulator extends Thread{
 	static double TimeSystem = 0;
 
 	private int id = 1;
-	Semaphore semap;
+	Semaphore semap = new Semaphore(30, true);
 	
 	RNGenerator Rand = new ExponentialDistribution();
 	static List<Session> list = new ArrayList<Session>();
@@ -25,9 +25,10 @@ public class Simulator extends Thread{
 		
 	public synchronized void run(){
 		
+		//Inicialmente os valores serão os relacionados abaixo
 		final double Error = 5;
-		final double CorrelationIP = 5;
-		final double CorrelationPB = 5;
+		final double CorrelationIP = 0.5;
+		final double CorrelationPB = 0.5;
 		final double StandardDeviationP = 5;
 		final double StandardDeviationI = 5;
 		final double StandardDeviationB = 5;
@@ -40,19 +41,6 @@ public class Simulator extends Thread{
 		StopCritery = 2;
 		ArgStopCritery = 750;
 				
-		/*if (Graphics.returnDistribution() == "Exponential Distribution") {
-			SessionsArrival = Rand.GeneratedValues(Graphics.ArrivalSessions);
-			SessionSize = Rand.GeneratedValues(Graphics.SizeSessions);
-			PacketsArrival = Rand.GeneratedValues(Graphics.ArrivalPackets);
-
-		}
-		if (Graphics.returnDistribution() == "Constant Values Distribution") {
-			SessionsArrival = Rand.GeneratedValues(Graphics.ArrivalSessions);
-			SessionSize = Rand.GeneratedValues(Graphics.SizeSessions);
-			PacketsArrival = Rand.GeneratedValues(Graphics.ArrivalPackets);
-			
-		}*/
-
 		//new Graphics();
 		//thread com loop para criação das sessões
 		new Thread(new Runnable() {
@@ -61,7 +49,7 @@ public class Simulator extends Thread{
 			public void run() {
 				while(!StopSystem){
 					try {
-						Thread.sleep(10); //Dorme por 10ms para assim criar uma nova thread de sessão
+						semap.acquire();
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -70,12 +58,13 @@ public class Simulator extends Thread{
 							CorrelationPB, StandardDeviationP, StandardDeviationI, StandardDeviationB, PacketSize, semap, GOP);
 					list.add(Initiate);
 					Initiate.start();
-					SessionsArrival = SessionsArrival + Rand.GeneratedValues(10);
+					SessionsArrival = SessionsArrival + Rand.GeneratedValues(10, 0);
 					//SessionSize = Rand.GeneratedValues(Graphics.SizeSessions); 
 					id++;
 					if(VerifyStopCritery(SessionsArrival, contWr) == 0){ //Sempre verifica o criterio de parada 
 						StopSystem = true;								 //interrompendo a criação de threads
 					}
+					
 				}
 			}
 		}).start();
@@ -95,14 +84,14 @@ public class Simulator extends Thread{
 		while(!StopSystem){
 			if(list.size() > 0){ //Verifica se há alguma sessão inserida na lista de sessões
 				auxSes = list.get(0); //Pega a primeira sessão
-				if(auxSes.getFrame() != null){ // Verifica se um objeto frame é válido para essa sessão
+				if(auxSes.getFlag()){ // Verifica se um objeto frame é válido para essa sessão
 					lessSize = auxSes.getFrame().GetEventFirstPacket(); //Pega o evento da primeira sessão
 					if(lessSize == 0) lessSize = 100000; //Caso não haja Pacotes na lista de pacotes da sessão...
 					IDlessSize = 0;						 //a variavel recebe um valor gigante para não ser descartada
 					for(int cont = 1; cont < getList().size(); cont++){  //loop para verificar o menor evento
 						auxSes = getList().get(cont);
-						if(auxSes.getFrame() != null){
-							if(auxSes.getFrame().PacketList.size() > 0 ){
+						if( auxSes.getFlag()){
+							if(auxSes.getFrame().PacketList.size() > 0){
 								if(lessSize > auxSes.getFrame().GetEventFirstPacket() && lessSize >= TimeSystem){
 									lessSize = auxSes.getFrame().GetEventFirstPacket();
 									IDlessSize = cont;
@@ -110,7 +99,6 @@ public class Simulator extends Thread{
 							}
 						}
 					}
-				//System.out.printf("----%d\n", IDlessSize);
 				if(list.get(IDlessSize).getFrame().PacketList.size() > 0){
 					recordData(list.get(IDlessSize).getFrame().PacketList.get(0)); //Com o menor evento em mãos...
 					getList().get(IDlessSize).getFrame().PacketList.remove(0);     //Ele é gravado em arquivo e removido
