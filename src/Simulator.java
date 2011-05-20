@@ -15,15 +15,17 @@ public class Simulator extends Thread{
 	Semaphore semap = new Semaphore(30, true);
 	
 	RNGenerator Rand = new ExponentialDistribution();
-	static List<Session> list = new ArrayList<Session>();
+	static List<Session> list = new ArrayList<Session>(); //lista de sessões
 	
 	static boolean check = false, StopSystem = false;
 	static int clock = 0, contWr = 0, times = 0;
 	static OutputFile Rec = new OutputFile("IPTVdata.txt");
-	static DecimalFormat df = new DecimalFormat("#.############");
+	static DecimalFormat df = new DecimalFormat("###.############"); //formato de gravação no arquivo
 	static int StopCritery, ArgStopCritery;
 		
 	public synchronized void run(){
+		
+		
 		
 		//Inicialmente os valores serão os relacionados abaixo
 		final double Error = 5;
@@ -112,7 +114,22 @@ public class Simulator extends Thread{
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-
+		
+		double test_value = 0;
+		GammaDistribution test_gamma = new GammaDistribution();
+		hep.aida.bin.DynamicBin1D bin = new hep.aida.bin.DynamicBin1D();
+		cern.colt.list.DoubleArrayList numbers = new cern.colt.list.DoubleArrayList(1000);
+		
+		
+		for(int x = 0; x < 1000; x++){
+			test_value = test_gamma.GeneratedValues(12.99, 2.5);
+			System.out.printf("%f\n", test_value);
+			numbers.add(test_value);
+		}
+		bin.addAllOf(numbers);
+		System.out.println(bin);
+		System.exit(0);
+		
 		Simulator MainThread =  new Simulator();
 		new Thread(MainThread).start();
 		//System.out.wait(10000);
@@ -120,18 +137,18 @@ public class Simulator extends Thread{
 
 	public static void recordData(Packets pac){
 		int SesID, PacID;
-		double TimeArrival, SizePac;
+		double TimeArrival;
+		int SizePac;
 		char TypeF;
-		//Sem semaphore = new Sem(s);
 
 		SesID = pac.getSesID(); //Desempacota os dados
 		PacID = pac.getPacID();
 		TimeArrival = TimeSystem = pac.getPacArriv();
-		SizePac = pac.getPacSize();
+		SizePac = (int) Math.round(pac.getPacSize());
 		TypeF = pac.getFType();
 
 		String str = Integer.toString(SesID) + "\t" + Integer.toString(PacID) + "\t" + TypeF +
-				"\t" + df.format(TimeArrival) + "\t\t" + df.format(SizePac);
+				"\t" + df.format(TimeArrival) + "\t\t" + SizePac;
 		
 		
 		try{

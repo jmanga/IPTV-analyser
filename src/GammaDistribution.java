@@ -5,6 +5,7 @@ public class GammaDistribution implements RNGenerator{
 	double alpha;
 	double lambda;
 	Gamma gamma;
+	cern.jet.random.engine.RandomEngine engine;
 	
 	public GammaDistribution(double a, double l) { 
 		this.alpha = a;
@@ -13,12 +14,16 @@ public class GammaDistribution implements RNGenerator{
 	}
 
 	public GammaDistribution() { 
-	    this.gamma = new Gamma(1, 1, null);
+		this.engine = new cern.jet.random.engine.MersenneTwister((int)System.currentTimeMillis());
+	    this.gamma = new Gamma(1, 1, engine);
 	}
 	
 	@Override
 	public double GeneratedValues(double a, double l) {
-		return gamma.nextDouble(a,l);
+		//this.gamma.setState(a, l);
+		this.engine = this.gamma.makeDefaultGenerator();
+		double s = this.gamma.nextDouble(a,l);
+		return s;
 	}
 
 	@Override
