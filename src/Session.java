@@ -8,11 +8,13 @@ public class Session extends Thread{
 	double FinalTime;
 	double SessionSize;
 	int PacketSize;
-	double meanArrivalPacket;
+	double[] meanArrivalPacket = new double[3];// 0 - tipo distrib, 1 e 2 - parametros distribuição
 	RNGenerator[] array = new RNGenerator[4];
 	Semaphore sem;
+	Semaphore sem_get_event;
 	int TypeErrorDist;
-	double MeanErrorFrames;
+	double ErrorFrameP;
+	double ErrorFrameB;
 	double CorrelationIP;
 	double CorrelationPB;
 	double StandardDeviationP;
@@ -28,17 +30,19 @@ public class Session extends Thread{
 	int contFrame;
 	boolean flag;
 	
+	
 
 	//Construtor para tipo de sistema usando frames
-	public Session(int SesID, double InitTime, double SesSize, double meanAP, double ErrorFrames, int TypeErrDist, 
+	public Session(int SesID, double InitTime, double SesSize, double[] meanAP, double ErrorFrameP, double ErrorFrameB, 
 			double CorrelationIP, double CorrelationPB, double StandardDeviationP, double StandardDeviationI, 
-			double StandardDeviationB, int PacSize, Semaphore s, String typeGOP){
+			double StandardDeviationB, int PacSize, Semaphore s, String typeGOP, Semaphore s2){
 		this.flag = false;
 		this.SessionID = SesID;
 		this.SessionSize = SesSize;
 		this.InitialTime = InitTime;
-		this.MeanErrorFrames = ErrorFrames;
-		this.TypeErrorDist = TypeErrDist;
+		this.ErrorFrameP = ErrorFrameP;
+		this.ErrorFrameB = ErrorFrameB;
+		//this.TypeErrorDist = TypeErrDist;
 		this.CorrelationIP = CorrelationIP;
 		this.CorrelationPB = CorrelationPB;
 		this.StandardDeviationP = StandardDeviationP;
@@ -46,7 +50,8 @@ public class Session extends Thread{
 		this.StandardDeviationB = StandardDeviationB;
 		this.PacketSize = PacSize;
 		this.GOPtype = typeGOP;
-		this.sem = s;
+		//this.sem = s;
+		this.sem_get_event = s2;
 		this.meanArrivalPacket = meanAP;
 		this.GenerateDist();
 		this.FinalTime = this.InitialTime + this.SessionSize;
@@ -61,7 +66,7 @@ public class Session extends Thread{
 
 	}
 	
-
+/*
 	//Construtor para tipo de sistema tradicional
 	public Session(int SesID, double InitTime, double SesSize, double meanAP, double meanSP, Sem s){
 		this.SessionID = SesID;
@@ -76,7 +81,7 @@ public class Session extends Thread{
 		this.meanSizePacket = meanSP;
 		this.meanArrivalPacket = meanAP;
 	}
-	
+*/	
 	//método que instancia as distribuições utilizadas no projeto em um array
 	public void GenerateDist(){
 		this.array[0] = new ExponentialDistribution();
@@ -87,7 +92,7 @@ public class Session extends Thread{
 	
 	public void run(){
 		try {
-			this.StartSession(2);
+			this.StartSession();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -107,54 +112,59 @@ public class Session extends Thread{
 	}
 	
 	//Inicializa a sessão verificando tipo do sistema: tradicional ou por GOP
-	public int StartSession(int typeSystem) throws InterruptedException{
-		double TArrive = this.InitialTime;
-		if(typeSystem == 1){
-			double ICPac = 0, SizePac;
-			ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
-			//SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
-			while(TArrive <= this.FinalTime){
-				//this.GeneratePacket(TArrive, SizePac, this.SessionID);
-				ICPac = this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
-				//SizePac = this.array[0].GeneratedValues(this.meanSizePacket);
-				TArrive = TArrive + ICPac;
-			}
-		}
-		else this.GenerateFrame();
+	public int StartSession() throws InterruptedException{
+		//double TArrive = this.InitialTime;
+		this.GenerateFrame();
 		return 0;
 	}
 	
 
 	//Essa função gera os frames do GOP e estes geram os pacotes
 	public void GenerateFrame() throws InterruptedException{
-		double timeLastPac = 0, TArrive = this.InitialTime;
+		
+		double TArrive = this.InitialTime;
 		int contFrames;
 		String nxFrame;
+		int lastIDPac = 0;
+		this.frame = new Frame(this.SessionID, this.meanArrivalPacket, this.CorrelationIP, this.CorrelationPB, this.StandardDeviationP, 
+				this.StandardDeviationI, this.StandardDeviationB,this.ErrorFrameB, this.ErrorFrameP, this.PacketSize, TArrive, lastIDPac);
+		//System.out.printf("%f e %f", TArrive, this.FinalTime);
+		//System.out.printf("%d inicia\n",this.SessionID);
 		while(TArrive <= this.FinalTime){ //Enquanto não atingir tempo final da sessão
 			contFrames = 0;
-			this.frame = new Frame(this.SessionID, this.meanArrivalPacket, this.CorrelationIP, this.CorrelationPB, this.StandardDeviationP, 
-				this.StandardDeviationI, this.StandardDeviationB,this.MeanErrorFrames, this.PacketSize, TArrive);
-			this.frame.CalcFrameI(); //Frame I é sempre o primeiro de um GOP
-			this.flag = true;
-			TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
+			TArrive = this.frame.CalcFrameI(); //Frame I é sempre o primeiro de um GOP
+			if(this.flag == false){
+				this.sem_get_event.release();
+				this.flag = true;
+			}			
+			//TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
 			if(TArrive >= this.FinalTime) break;
-			while(contFrames <= this.qtFrames){ //de acordo com  tipo de GOP passado, faz a gravação de frames P e B
+			while(contFrames <= this.qtFrames+1){ //de acordo com  tipo de GOP passado, faz a gravação de frames P e B
 				nxFrame = this.VerifyNextFrame();
 				if(nxFrame.equals("P")){
-					timeLastPac = this.frame.CalcFrameP(TArrive);
+					TArrive = this.frame.CalcFrameP();
 				}
 				else{
 					if(nxFrame.equals("B")){
-						timeLastPac = this.frame.CalcFrameB(TArrive);
+						TArrive = this.frame.CalcFrameB();
 					}
 					else System.out.printf("ErrorFramesGenerate");
 				}
-				TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
+				//TArrive = TArrive + this.array[0].GeneratedValues(this.meanArrivalPacket, 0);
 				if(TArrive >= this.FinalTime) break;
 				contFrames++;
 			}
+			//lastIDPac = this.frame.getPacketID() + 1;
+			//System.out.printf("%d\n", lastIDPac);
+			this.contFrame = 1;
 		}
-		this.sem.release();
+		//System.out.printf("%d finaliza", this.SessionID);
+		
+		this.sem_get_event.acquire();
+		//System.out.printf("antes: %d\n",Simulator.semap.availablePermits());
+		Simulator.semap.release();
+		//System.out.printf("depois: %d\n",Simulator.semap.availablePermits());
+		Simulator.nt--;
 	}
 
 

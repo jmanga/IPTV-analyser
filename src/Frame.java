@@ -14,35 +14,49 @@ public class Frame {
 	double StdDeviationP;
 	double StdDeviationI;
 	double StdDeviationB;
-	double MeanError;
-	double FirstTime;
-	double PacInterval;
+	double MeanErrorP;
+	double MeanErrorB;
+	double TimePac;
+	double[] PacInterval = new double[3]; //media intervalo entre pacotes
 	int SessionID;
 	int PacketID;
 	double PacketSizeDefault;
 	ArrayList<Packets> PacketList = new ArrayList<Packets>();
 	
-	public Frame(int sesID, double PacInterv, double correlatIP, double correlatPB, double StdDevP, 
-			double StdDevI, double StdDevB, double meanErr, int SizePac, double FTime){
+	public Frame(int sesID, double[] PacInterv, double correlatIP, double correlatPB, double StdDevP, 
+			double StdDevI, double StdDevB, double meanErrB, double meanErrP, int SizePac, double FTime, int lastID){
 		this.SessionID = sesID;
 		this.FirstB = true;
 		this.FirstI = true;
 		this.FirstP = true;
-		this.FirstTime = FTime;
+		this.TimePac = FTime;
 		this.PacInterval = PacInterv;
 		this.correlationIP = correlatIP;
 		this.correlationPB = correlatPB;
 		this.StdDeviationB = StdDevB;
 		this.StdDeviationI = StdDevI;
 		this.StdDeviationP = StdDevP;
-		this.PacketID = 0;
+		this.PacketID = lastID;
 		this.PacketSizeDefault = 1500;
 		//this.SizeI = 1500; 
-		this.MeanError = meanErr;
+		this.MeanErrorB = meanErrB;
+		this.MeanErrorP = meanErrP;
 		this.GenerateDist();
 		this.PacketID = 1;
 	}
 
+	public int getPacketID() {
+		return PacketID;
+	}
+
+	public void setPacketID(int packetID) {
+		PacketID = packetID;
+	}
+
+	public void remove_packet(){
+		this.PacketList.remove(0);
+	}
+	
 	//Método para gerar as ditribuições usadas no projeto em um array
 	public void GenerateDist(){
 		this.array[0] = new ExponentialDistribution();
@@ -59,73 +73,93 @@ public class Frame {
 	
 	//Método que retorno ID do próximo pacote a ser criado
 	public int IDGenerator(){
+		//System.out.printf("ID -> %d\n", this.PacketID);
 		return this.PacketID++;
 	}
 	
 	//Método que cálcula o tamanho do Frame I e pede pra gerar os pacotes
-	public synchronized int CalcFrameI(){
+	public synchronized double CalcFrameI(){
 		this.SizeI = 1500; //por enquanto valor fixo, depois valor vindo de distribuição
-		int QtPac = this.GeneratePacI();
-		return QtPac;
+		this.GeneratePacI();
+		return this.TimePac;
 	}
 	
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
-	public synchronized double CalcFrameP(double TArrive){
+	public synchronized double CalcFrameP(){
 		
-		double Error = this.array[0].GeneratedValues(this.MeanError, 0);
-		if(this.FirstP){ //Primeiro P do GOP é calcula dessa forma
+		double Error = this.MeanErrorP;
+		if(this.FirstP){ //Primeiro P do GOP é calculado dessa forma
 			this.lastValueP = this.SizeI*(this.correlationIP*this.StdDeviationP)/this.StdDeviationI + Error;
+			this.FirstP = false;
 		}
 		else{ //Próximos P's do GOP são calculados baseados no ultimo P
 			this.lastValueP = this.lastValueP + Error;
 		}
-		int QtPac = this.GeneratePacP(TArrive);
-		return QtPac;
+		this.GeneratePacP();
+		return this.TimePac;
 	}
 	
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
-	public synchronized int CalcFrameB(double TArrive){
-		double Error = this.array[0].GeneratedValues(this.MeanError, 0);
+	public synchronized double CalcFrameB(){
+		double Error = this.MeanErrorB;
 		if(this.FirstB){ //Primeiro P do GOP é calcula dessa forma
 			this.lastValueB = this.lastValueP*(this.correlationPB*this.StdDeviationB)/this.StdDeviationP + Error;
+			this.FirstB = false;
 		}
 		else{ //Próximos P's do GOP são calculados baseados no ultimo P
 			this.lastValueB = this.lastValueB + Error;
 		}
-		int QtPac = this.GeneratePacB(TArrive);
-		return QtPac;
+		this.GeneratePacB();
+		return this.TimePac;
 		
 	}
 	
+	public double CalculateValueDistribution(){
+		int typedistrib = (int)this.PacInterval[0];
+		double parameter1 = this.PacInterval[1];
+		double parameter2 = this.PacInterval[2];
+		if(typedistrib != 1){
+			return this.array[typedistrib].GeneratedValues(parameter1, parameter2);
+		}
+		else{
+			return parameter1;
+		}
+	}
+	
 	// Cria os pacotes do tipo I de acordo com o tamanho maximo de cada pacote
-	public synchronized int GeneratePacI(){
+	public synchronized double GeneratePacI(){	
 		int PacQt = (int) (this.SizeI / 1500);
 		double SizeLastPac = this.SizeI % 1500;
 		Packets packet;
 		for(int i = 0; i< PacQt; i++){	
-			packet = new Packets(this.SessionID, this.IDGenerator(),this.FirstTime, this.PacketSizeDefault, 'I');
+			this.TimePac = this.TimePac + this.CalculateValueDistribution();
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSizeDefault, 'I');
 			this.PacketList.add(packet);
 		}
 		if(SizeLastPac != 0){
-			packet = new Packets(this.SessionID, this.IDGenerator(), this.FirstTime, SizeLastPac, 'I');
+			this.TimePac = this.TimePac + this.CalculateValueDistribution();
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, SizeLastPac, 'I');
 			this.PacketList.add(packet);
 			return PacQt + 1;
 		}
 		//System.out.printf("Qt pac: %d frame I ses: %d\n", PacQt, this.SessionID);
-		return PacQt;
+		return 0;
 	}
 	
 	// Cria os pacotes do tipo B de acordo com o tamanho maximo de cada pacote
-	public synchronized int GeneratePacB(double TArrive){
+	public synchronized double GeneratePacB(){
+		
 		int PacQt = (int) (this.lastValueB / 1500);
 		double SizeLastPac = this.lastValueB % 1500;
 		Packets packet;
 		for(int i = 0; i< PacQt; i++){
-			packet = new Packets(this.SessionID, this.IDGenerator(), TArrive, this.PacketSizeDefault, 'B');
+			this.TimePac = this.TimePac + this.CalculateValueDistribution();
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSizeDefault, 'B');
 			this.PacketList.add(packet);
 		}
 		if(SizeLastPac != 0){
-			packet = new Packets(this.SessionID, this.IDGenerator(), TArrive, SizeLastPac, 'B');
+			this.TimePac = this.TimePac + this.CalculateValueDistribution();
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, SizeLastPac, 'B');
 			this.PacketList.add(packet);
 			return PacQt + 1;
 		}
@@ -134,20 +168,23 @@ public class Frame {
 	}
 	
 	// Cria os pacotes do tipo P de acordo com o tamanho maximo de cada pacote
-	public synchronized int GeneratePacP(double TArrive){
+	public synchronized double GeneratePacP(){
+		
 		int PacQt = (int) (this.lastValueP / 1500);
 		double SizeLastPac = this.lastValueP % 1500;
 		Packets packet;
 		for(int i = 0; i< PacQt; i++){
-			packet = new Packets(this.SessionID, this.IDGenerator(), TArrive, this.PacketSizeDefault, 'P');
+			this.TimePac = this.TimePac + this.CalculateValueDistribution();
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSizeDefault, 'P');
 			this.PacketList.add(packet);
 		}
 		if(SizeLastPac != 0){
-			packet = new Packets(this.SessionID, this.IDGenerator(), TArrive, SizeLastPac, 'P');
+			this.TimePac = this.TimePac + this.CalculateValueDistribution();
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, SizeLastPac, 'P');
 			this.PacketList.add(packet);
 			return PacQt + 1;
 		}
 		//System.out.printf("Qt pac: %d frame P\n", PacQt);
-		return PacQt;
+		return 0;
 	}
 }
