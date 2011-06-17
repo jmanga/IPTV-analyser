@@ -81,7 +81,16 @@ public class Frame {
 	public synchronized double CalcFrameI(){
 		this.SizeI = 1500; //por enquanto valor fixo, depois valor vindo de distribuição
 		this.GeneratePacI();
+		this.lastValueB = 0;
+		this.lastValueP = 0;
+		this.FirstB = true;
+		this.FirstP = true;
 		return this.TimePac;
+	}
+	
+	public synchronized void CalcFirstFrameP(){
+		double Error = this.MeanErrorP;
+		this.lastValueP = this.SizeI*(this.correlationIP*this.StdDeviationP)/this.StdDeviationI + Error;
 	}
 	
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
@@ -89,7 +98,6 @@ public class Frame {
 		
 		double Error = this.MeanErrorP;
 		if(this.FirstP){ //Primeiro P do GOP é calculado dessa forma
-			this.lastValueP = this.SizeI*(this.correlationIP*this.StdDeviationP)/this.StdDeviationI + Error;
 			this.FirstP = false;
 		}
 		else{ //Próximos P's do GOP são calculados baseados no ultimo P
@@ -102,7 +110,8 @@ public class Frame {
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
 	public synchronized double CalcFrameB(){
 		double Error = this.MeanErrorB;
-		if(this.FirstB){ //Primeiro P do GOP é calcula dessa forma
+		if(this.FirstB){ //Primeiro B do GOP é calcula dessa forma
+			this.CalcFirstFrameP();
 			this.lastValueB = this.lastValueP*(this.correlationPB*this.StdDeviationB)/this.StdDeviationP + Error;
 			this.FirstB = false;
 		}
