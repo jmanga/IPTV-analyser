@@ -12,17 +12,19 @@ public class Simulator extends Thread{
 	static double TimeSystem = 0;
 	static double SessionArrival = 0;
 	static double SessionSize = 20;
-	static public int nt = 0;
+	static public int SimultaneousSessions = 15;
 	
-	private int id = 1;
-	static Semaphore semap = new Semaphore(5, true); // 15 sessões simultaneas
-	Semaphore sem_get_event = new Semaphore(-4, true);
+	static int id = 1;
+	static Semaphore semap = new Semaphore(1, true); // 15 sessões simultaneas
+	static Semaphore sem_get_event = new Semaphore((SimultaneousSessions-1)*-1, true);
+	static Semaphore sem_critic_region = new Semaphore(1, true);
 	
-	RNGenerator Rand = new ExponentialDistribution();
+	static RNGenerator Rand = new ExponentialDistribution();
 	static List<Session> list = new ArrayList<Session>(); //lista de sessões
 	
 	static boolean check = false, StopSystem = false;
-	static int clock = 0, contWr = 0, times = 0;
+	static int contWr = 0, times = 0;
+	static double timeSessionSaved = 0;
 	static OutputFile Rec = new OutputFile("IPTVdata.txt");
 	static DecimalFormat df = new DecimalFormat("###.############"); //formato de gravação no arquivo
 	static int StopCritery, ArgStopCritery;
@@ -40,7 +42,7 @@ public class Simulator extends Thread{
 		final double StandardDeviationI = 5;
 		final double StandardDeviationB = 5;
 		//final int TypeErrorDist = 1;
-		final int PacketSize = 1500;
+		final int PacketSize = 500;
 		final String GOP = new String("6,3");
 		MeanSessionArrival[0] = 0;
 		MeanSessionArrival[1] = 5;
@@ -52,7 +54,7 @@ public class Simulator extends Thread{
 		PacketsArrival[1] = 3;
 		PacketsArrival[2] = 0;
 		StopCritery = 2;
-		ArgStopCritery = 25;
+		ArgStopCritery = 1000;
 						
 				
 		//new Graphics();
@@ -61,9 +63,9 @@ public class Simulator extends Thread{
 			
 			@Override
 			public void run() {
-				
-				while(!StopSystem){
-					try {
+				for(int cont = 0; cont < SimultaneousSessions;cont++){
+				//while(!StopSystem){
+					/*try {
 						semap.acquire();
 						nt++;
 						//System.out.printf("antes qt %d\n",list.size());
@@ -71,76 +73,82 @@ public class Simulator extends Thread{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					//System.out.printf("num thread = %d e semaforo = %d\n",Simulator.nt, semap.availablePermits());			
+					if(id < 5 ){
+					    System.out.printf("num thread = %d começo %f e tamanho %f\n",id, SessionArrival, SessionSize);			
+					}*/
 					Session Initiate = new Session(id, SessionArrival, SessionSize, PacketsArrival, ErrorP, ErrorB, CorrelationIP, 
-							CorrelationPB, StandardDeviationP, StandardDeviationI, StandardDeviationB, PacketSize, semap, GOP, sem_get_event);
+							CorrelationPB, StandardDeviationP, StandardDeviationI, StandardDeviationB, PacketSize, GOP);
 					list.add(Initiate);
+					try {
+						SetTimeArriveLastSession(SessionArrival);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					Initiate.start();
-					SessionArrival = SessionArrival + Rand.GeneratedValues(MeanSessionArrival[1], MeanSessionArrival[2]);
+					SessionArrival = SessionArrival + 10;
+					//SessionArrival = SessionArrival + Rand.GeneratedValues(MeanSessionArrival[1], MeanSessionArrival[2]);
 					//SessionSize = Rand.GeneratedValues(Graphics.SizeSessions); 
 					id++;
-					if(VerifyStopCritery(SessionArrival, contWr) == 0){ //Sempre verifica o criterio de parada 
-						StopSystem = true;								 //interrompendo a criação de threads
-					}
-					
 				}
+				//while(VerifyStopCritery(SessionArrival, contWr) != 0){ //Sempre verifica o criterio de parada 
+				//	StopSystem = true;								 //interrompendo a criação de threads
+				//}
 			}
 		}).start();
 		
 		Session auxSes;
 		double lessSize;
 		int IDlessSize;
-		
-		try {
-			Thread.sleep(1000); //Dorme por 10ms para assim criar uma nova thread de sessão
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+			
 		// Loop responsável por gerar o evento inserindo-o em um arquivo
 		while(!StopSystem){
 			//if(list.size() > 0){ //Verifica se há alguma sessão inserida na lista de sessões
 			    
 				try {
+					//System.out.printf("antes2 \n");
 					sem_get_event.acquire();
-					System.out.printf("qt %d\n",list.size());
+					
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
+					
 					e.printStackTrace();
 				}
 				
-				/*for(int cont = 0; cont < getList().size(); cont++){
-					System.out.printf("q = %d\n",list.size());
-			    	System.out.printf("qtde = %d\n", list.get(cont).frame.PacketList.size());
-					if(list.get(cont).frame.PacketList.isEmpty()){
-						System.out.printf("fim\n");
-			    		Session ses = list.remove(cont);
-			    		ses = null;
-			    	}
-			    }*/
-				
-				auxSes = list.get(0); //Pega a primeira sessão
+				int cont = 0;
+				//System.out.printf("depois2\n");
+				auxSes = list.get(cont); //Pega a primeira sessão
 				lessSize = auxSes.getFrame().GetEventFirstPacket(); //Pega o evento da primeira sessão
-				//if(lessSize == 0) lessSize = 100000; //Caso não haja Pacotes na lista de pacotes da sessão...
+				cont++;
+				/*while(lessSize == -1 && cont < 3){
+					auxSes = list.get(cont);
+					lessSize = auxSes.getFrame().GetEventFirstPacket();
+					cont++;
+				}*/
 				IDlessSize = 0;						 //a variavel recebe um valor gigante para não ser descartada
-				for(int cont = 1; cont < getList().size(); cont++){  //loop para verificar o menor evento
+				for(; cont < getList().size(); cont++){  //loop para verificar o menor evento
 					auxSes = getList().get(cont);
 					//if(auxSes.getFrame().PacketList.size() > 0){
-					if(lessSize > auxSes.getFrame().GetEventFirstPacket() && lessSize >= TimeSystem){
+					if((auxSes.getFrame().GetEventFirstPacket() != -1) && lessSize > auxSes.getFrame().GetEventFirstPacket() && lessSize >= TimeSystem){
 						lessSize = auxSes.getFrame().GetEventFirstPacket();
 						IDlessSize = cont;
 					}
 					//}
 				}
 				if(list.get(IDlessSize).getFrame().PacketList.size() > 0){
-					System.out.printf("%d\n", IDlessSize);
 					recordData(list.get(IDlessSize).getFrame().PacketList.get(0)); //Com o menor evento em mãos...
 					list.get(IDlessSize).getFrame().remove_packet();     //Ele é gravado em arquivo e removido
 				
 				}
-				sem_get_event.release();
-			//}
+				try {
+					sem_critic_region.acquire();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				//if(!list.get(IDlessSize).getFrame().PacketList.isEmpty()){
+				    sem_get_event.release();
+				//}
+				sem_critic_region.release();
 		}
 		
 		System.exit(1);
@@ -149,26 +157,24 @@ public class Simulator extends Thread{
 	
 	public static void main(String[] args) throws InterruptedException {
 		
-		/*double test_value = 0;
-		GammaDistribution test_gamma = new GammaDistribution();
-		hep.aida.bin.DynamicBin1D bin = new hep.aida.bin.DynamicBin1D();
-		cern.colt.list.DoubleArrayList numbers = new cern.colt.list.DoubleArrayList(1000);
-		
-		
-		for(int x = 0; x < 1000; x++){
-			test_value = test_gamma.GeneratedValues(12.99, 2.5);
-			System.out.printf("%f\n", test_value);
-			numbers.add(test_value);
-		}
-		bin.addAllOf(numbers);
-		System.out.println(bin);
-		System.exit(0);*/
-		
 		Simulator MainThread =  new Simulator();
 		new Thread(MainThread).start();
 		//System.out.wait(10000);
 	}
 
+	public static void SetTimeArriveLastSession(double time) throws InterruptedException{
+		semap.acquire();
+		timeSessionSaved = time;
+		semap.release();
+	}
+	
+	public static double GetTimeArriveLastSession() throws InterruptedException{
+		semap.acquire();
+		timeSessionSaved =  timeSessionSaved + Rand.GeneratedValues(MeanSessionArrival[1], MeanSessionArrival[2]);
+		semap.release();
+		return timeSessionSaved;
+	}
+	
 	public static void recordData(Packets pac){
 		int SesID, PacID;
 		double TimeArrival;
@@ -193,7 +199,7 @@ public class Simulator extends Thread{
 			System.out.printf("Error semaphore");
 			e.printStackTrace();
 		}
-		if(VerifyStopCritery(SessionArrival, contWr) == 0){ //Sempre verifica o criterio de parada 
+		if(VerifyStopCritery(TimeArrival, contWr) == 0){ //Sempre verifica o criterio de parada 
 			StopSystem = true;		
 		}//interrompendo a criação de threads
 		pac = null;

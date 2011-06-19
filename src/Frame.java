@@ -21,10 +21,11 @@ public class Frame {
 	int SessionID;
 	int PacketID;
 	double PacketSizeDefault;
+	double PacketSize;
 	ArrayList<Packets> PacketList = new ArrayList<Packets>();
 	
 	public Frame(int sesID, double[] PacInterv, double correlatIP, double correlatPB, double StdDevP, 
-			double StdDevI, double StdDevB, double meanErrB, double meanErrP, int SizePac, double FTime, int lastID){
+			double StdDevI, double StdDevB, double meanErrB, double meanErrP, int SizePac, double FTime){
 		this.SessionID = sesID;
 		this.FirstB = true;
 		this.FirstI = true;
@@ -36,13 +37,30 @@ public class Frame {
 		this.StdDeviationB = StdDevB;
 		this.StdDeviationI = StdDevI;
 		this.StdDeviationP = StdDevP;
-		this.PacketID = lastID;
+		//this.PacketID = lastID;
 		this.PacketSizeDefault = 1500;
+		this.PacketSize = SizePac;
 		//this.SizeI = 1500; 
 		this.MeanErrorB = meanErrB;
 		this.MeanErrorP = meanErrP;
 		this.GenerateDist();
 		this.PacketID = 1;
+	}
+
+	public double getTimePac() {
+		return TimePac;
+	}
+
+	public void setTimePac(double timePac) {
+		TimePac = timePac;
+	}
+
+	public int getSessionID() {
+		return SessionID;
+	}
+
+	public void setSessionID(int sessionID) {
+		SessionID = sessionID;
 	}
 
 	public int getPacketID() {
@@ -68,7 +86,7 @@ public class Frame {
 	//Método para obter evento de tempo de chegada do pacote
 	public double GetEventFirstPacket(){
 		if(this.PacketList.size() > 0)	return this.PacketList.get(0).getPacArriv();
-		else return 0;
+		else return -1;
 	}
 	
 	//Método que retorno ID do próximo pacote a ser criado
@@ -77,8 +95,27 @@ public class Frame {
 		return this.PacketID++;
 	}
 	
+	public void Test() throws InterruptedException{
+		Packets packet;
+		for(int cont = 1;cont < 6; cont++){
+			this.VerifySemaphore();
+			this.TimePac = this.TimePac + 1;
+		    packet = new Packets(this.SessionID, cont, this.TimePac, 100, 'I');
+		    this.PacketList.add(packet);
+		    
+		}
+	}
+	
+	public void VerifySemaphore() throws InterruptedException{
+		Simulator.sem_critic_region.acquire();
+		if(this.PacketList.isEmpty()){
+			Simulator.sem_get_event.release();
+		}
+		Simulator.sem_critic_region.release();
+	}
+	
 	//Método que cálcula o tamanho do Frame I e pede pra gerar os pacotes
-	public synchronized double CalcFrameI(){
+	public synchronized double CalcFrameI() throws InterruptedException{
 		this.SizeI = 1500; //por enquanto valor fixo, depois valor vindo de distribuição
 		this.GeneratePacI();
 		this.lastValueB = 0;
@@ -94,7 +131,7 @@ public class Frame {
 	}
 	
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
-	public synchronized double CalcFrameP(){
+	public synchronized double CalcFrameP() throws InterruptedException{
 		
 		double Error = this.MeanErrorP;
 		if(this.FirstP){ //Primeiro P do GOP é calculado dessa forma
@@ -108,7 +145,7 @@ public class Frame {
 	}
 	
 	//método que calcula o tamanho do Frame P e pede pra gerar os pacotes
-	public synchronized double CalcFrameB(){
+	public synchronized double CalcFrameB() throws InterruptedException{
 		double Error = this.MeanErrorB;
 		if(this.FirstB){ //Primeiro B do GOP é calcula dessa forma
 			this.CalcFirstFrameP();
@@ -136,13 +173,14 @@ public class Frame {
 	}
 	
 	// Cria os pacotes do tipo I de acordo com o tamanho maximo de cada pacote
-	public synchronized double GeneratePacI(){	
-		int PacQt = (int) (this.SizeI / 1500);
-		double SizeLastPac = this.SizeI % 1500;
+	public synchronized double GeneratePacI() throws InterruptedException{	
+		int PacQt = (int) (this.SizeI / this.PacketSize);
+		double SizeLastPac = this.SizeI % this.PacketSize;
+		this.VerifySemaphore();
 		Packets packet;
 		for(int i = 0; i< PacQt; i++){	
 			this.TimePac = this.TimePac + this.CalculateValueDistribution();
-			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSizeDefault, 'I');
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSize, 'I');
 			this.PacketList.add(packet);
 		}
 		if(SizeLastPac != 0){
@@ -152,18 +190,20 @@ public class Frame {
 			return PacQt + 1;
 		}
 		//System.out.printf("Qt pac: %d frame I ses: %d\n", PacQt, this.SessionID);
+		
 		return 0;
 	}
 	
 	// Cria os pacotes do tipo B de acordo com o tamanho maximo de cada pacote
-	public synchronized double GeneratePacB(){
+	public synchronized double GeneratePacB() throws InterruptedException{
 		
-		int PacQt = (int) (this.lastValueB / 1500);
-		double SizeLastPac = this.lastValueB % 1500;
+		int PacQt = (int) (this.lastValueB / this.PacketSize);
+		double SizeLastPac = this.lastValueB % this.PacketSize;
+		this.VerifySemaphore();
 		Packets packet;
 		for(int i = 0; i< PacQt; i++){
 			this.TimePac = this.TimePac + this.CalculateValueDistribution();
-			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSizeDefault, 'B');
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSize, 'B');
 			this.PacketList.add(packet);
 		}
 		if(SizeLastPac != 0){
@@ -173,18 +213,20 @@ public class Frame {
 			return PacQt + 1;
 		}
 		//System.out.printf("Qt pac: %d frame B\n", PacQt);
+
 		return PacQt;
 	}
 	
 	// Cria os pacotes do tipo P de acordo com o tamanho maximo de cada pacote
-	public synchronized double GeneratePacP(){
+	public synchronized double GeneratePacP() throws InterruptedException{
 		
-		int PacQt = (int) (this.lastValueP / 1500);
-		double SizeLastPac = this.lastValueP % 1500;
+		int PacQt = (int) (this.lastValueP / this.PacketSize);
+		double SizeLastPac = this.lastValueP % this.PacketSize;
+		this.VerifySemaphore();
 		Packets packet;
 		for(int i = 0; i< PacQt; i++){
 			this.TimePac = this.TimePac + this.CalculateValueDistribution();
-			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSizeDefault, 'P');
+			packet = new Packets(this.SessionID, this.IDGenerator(), this.TimePac, this.PacketSize, 'P');
 			this.PacketList.add(packet);
 		}
 		if(SizeLastPac != 0){
@@ -194,6 +236,7 @@ public class Frame {
 			return PacQt + 1;
 		}
 		//System.out.printf("Qt pac: %d frame P\n", PacQt);
+
 		return 0;
 	}
 }
