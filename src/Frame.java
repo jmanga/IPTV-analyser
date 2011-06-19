@@ -47,6 +47,18 @@ public class Frame {
 		this.PacketID = 1;
 	}
 
+	//Metodo de teste da criação de pacotes
+	public void Test() throws InterruptedException{
+		Packets packet;
+		for(int cont = 1;cont < 6; cont++){
+			this.VerifySemaphore();
+			this.TimePac = this.TimePac + 1;
+		    packet = new Packets(this.SessionID, cont, this.TimePac, 100, 'I');
+		    this.PacketList.add(packet);
+		    
+		}
+	}
+	
 	public double getTimePac() {
 		return TimePac;
 	}
@@ -75,35 +87,24 @@ public class Frame {
 		this.PacketList.remove(0);
 	}
 	
-	//Método para gerar as ditribuições usadas no projeto em um array
-	public void GenerateDist(){
-		this.array[0] = new ExponentialDistribution();
-		//this.array[1] = new valores fixos;
-		this.array[2] = new GammaDistribution();
-		//this.array[3] = new ParetoDistribution();
-	}
-	
 	//Método para obter evento de tempo de chegada do pacote
 	public double GetEventFirstPacket(){
 		if(this.PacketList.size() > 0)	return this.PacketList.get(0).getPacArriv();
 		else return -1;
 	}
 	
+	//Método para gerar as ditribuições usadas no projeto em um array
+	public void GenerateDist(){
+		this.array[0] = new ExponentialDistribution();
+		//this.array[1] = new valores fixos; //Somente de comentario pois nao há classe definida para valores fixos
+		this.array[2] = new GammaDistribution();
+		//this.array[3] = new ParetoDistribution();
+	}
+	
 	//Método que retorno ID do próximo pacote a ser criado
 	public int IDGenerator(){
 		//System.out.printf("ID -> %d\n", this.PacketID);
 		return this.PacketID++;
-	}
-	
-	public void Test() throws InterruptedException{
-		Packets packet;
-		for(int cont = 1;cont < 6; cont++){
-			this.VerifySemaphore();
-			this.TimePac = this.TimePac + 1;
-		    packet = new Packets(this.SessionID, cont, this.TimePac, 100, 'I');
-		    this.PacketList.add(packet);
-		    
-		}
 	}
 	
 	public void VerifySemaphore() throws InterruptedException{
@@ -125,6 +126,7 @@ public class Frame {
 		return this.TimePac;
 	}
 	
+	//Metodo que calcula o primeiro frame P de um GOP que é utilizado por um frame B
 	public synchronized void CalcFirstFrameP(){
 		double Error = this.MeanErrorP;
 		this.lastValueP = this.SizeI*(this.correlationIP*this.StdDeviationP)/this.StdDeviationI + Error;
@@ -134,7 +136,7 @@ public class Frame {
 	public synchronized double CalcFrameP() throws InterruptedException{
 		
 		double Error = this.MeanErrorP;
-		if(this.FirstP){ //Primeiro P do GOP é calculado dessa forma
+		if(this.FirstP){ //Primeiro P do GOP é calculado anteriormente pois é utilizado para cálculo do B
 			this.FirstP = false;
 		}
 		else{ //Próximos P's do GOP são calculados baseados no ultimo P

@@ -6,13 +6,15 @@ import java.io.*;
 
 public class Simulator extends Thread{
 
+	static GraphInter GUI = new GraphInter();
+	
 	static double[] PacketsArrival = new double[3];//0 - tipo distrib, 1 e 2 - parametros da distrib
 	static double[] MeanSessionArrival = new double[3];
 	static double[] MeanSessionSize = new double[3];
 	static double TimeSystem = 0;
 	static double SessionArrival = 0;
-	static double SessionSize = 20;
-	static public int SimultaneousSessions = 15;
+	static double SessionSize = 40;
+	static public int SimultaneousSessions = 30;
 	
 	static int id = 1;
 	static Semaphore semap = new Semaphore(1, true); // 15 sessões simultaneas
@@ -25,7 +27,7 @@ public class Simulator extends Thread{
 	static boolean check = false, StopSystem = false;
 	static int contWr = 0, times = 0;
 	static double timeSessionSaved = 0;
-	static OutputFile Rec = new OutputFile("IPTVdata.txt");
+	static OutputFile Rec;
 	static DecimalFormat df = new DecimalFormat("###.############"); //formato de gravação no arquivo
 	static int StopCritery, ArgStopCritery;
 		
@@ -34,17 +36,17 @@ public class Simulator extends Thread{
 		
 		
 		//Inicialmente os valores serão os relacionados abaixo
-		final double ErrorP = 5;
-		final double ErrorB = 5;
-		final double CorrelationIP = 0.5;
-		final double CorrelationPB = 0.5;
-		final double StandardDeviationP = 5;
-		final double StandardDeviationI = 5;
-		final double StandardDeviationB = 5;
+		final double ErrorP = GUI.getErroP();
+		final double ErrorB = GUI.getErroB();
+		final double CorrelationIP = GUI.getCorrelIP();
+		final double CorrelationPB = GUI.getCorrelPB();
+		final double StandardDeviationP = GUI.getDesvPadP();
+		final double StandardDeviationI = GUI.getDesvPadI();
+		final double StandardDeviationB = GUI.getDesvPadB();
 		//final int TypeErrorDist = 1;
-		final int PacketSize = 500;
-		final String GOP = new String("6,3");
-		MeanSessionArrival[0] = 0;
+		final int PacketSize = GUI.getTamPacote();
+		final String GOP = Integer.toString(GUI.getTipoGOP1()) + "," + Integer.toString(GUI.getTipoGOP2());
+		/*MeanSessionArrival[0] = 0;
 		MeanSessionArrival[1] = 5;
 		MeanSessionArrival[2] = 0;
 		MeanSessionSize[0] = 0;
@@ -52,9 +54,13 @@ public class Simulator extends Thread{
 		MeanSessionSize[2] = 0;
 		PacketsArrival[0] = 0;
 		PacketsArrival[1] = 3;
-		PacketsArrival[2] = 0;
-		StopCritery = 2;
-		ArgStopCritery = 1000;
+		PacketsArrival[2] = 0;*/
+		MeanSessionArrival = GUI.getRetChegSes();
+		MeanSessionSize = GUI.getRetTamSes();
+		PacketsArrival = GUI.getRetChegPac();
+		StopCritery = GUI.getjCBCriterioParadaOptions();
+		ArgStopCritery = GUI.getCriterioParada();
+		Rec = new OutputFile(GUI.getNomeArquivo() + ".txt");
 						
 				
 		//new Graphics();
@@ -64,18 +70,7 @@ public class Simulator extends Thread{
 			@Override
 			public void run() {
 				for(int cont = 0; cont < SimultaneousSessions;cont++){
-				//while(!StopSystem){
-					/*try {
-						semap.acquire();
-						nt++;
-						//System.out.printf("antes qt %d\n",list.size());
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					if(id < 5 ){
-					    System.out.printf("num thread = %d começo %f e tamanho %f\n",id, SessionArrival, SessionSize);			
-					}*/
+
 					Session Initiate = new Session(id, SessionArrival, SessionSize, PacketsArrival, ErrorP, ErrorB, CorrelationIP, 
 							CorrelationPB, StandardDeviationP, StandardDeviationI, StandardDeviationB, PacketSize, GOP);
 					list.add(Initiate);
@@ -86,14 +81,11 @@ public class Simulator extends Thread{
 						e.printStackTrace();
 					}
 					Initiate.start();
-					SessionArrival = SessionArrival + 10;
-					//SessionArrival = SessionArrival + Rand.GeneratedValues(MeanSessionArrival[1], MeanSessionArrival[2]);
+					//SessionArrival = SessionArrival + 10;
+					SessionArrival = SessionArrival + Rand.GeneratedValues(MeanSessionArrival[1], MeanSessionArrival[2]);
 					//SessionSize = Rand.GeneratedValues(Graphics.SizeSessions); 
 					id++;
 				}
-				//while(VerifyStopCritery(SessionArrival, contWr) != 0){ //Sempre verifica o criterio de parada 
-				//	StopSystem = true;								 //interrompendo a criação de threads
-				//}
 			}
 		}).start();
 		
@@ -103,19 +95,14 @@ public class Simulator extends Thread{
 			
 		// Loop responsável por gerar o evento inserindo-o em um arquivo
 		while(!StopSystem){
-			//if(list.size() > 0){ //Verifica se há alguma sessão inserida na lista de sessões
 			    
 				try {
-					//System.out.printf("antes2 \n");
-					sem_get_event.acquire();
-					
-				} catch (InterruptedException e) {
-					
+					sem_get_event.acquire();				
+				} catch (InterruptedException e) {	
 					e.printStackTrace();
 				}
 				
 				int cont = 0;
-				//System.out.printf("depois2\n");
 				auxSes = list.get(cont); //Pega a primeira sessão
 				lessSize = auxSes.getFrame().GetEventFirstPacket(); //Pega o evento da primeira sessão
 				cont++;
@@ -127,12 +114,10 @@ public class Simulator extends Thread{
 				IDlessSize = 0;						 //a variavel recebe um valor gigante para não ser descartada
 				for(; cont < getList().size(); cont++){  //loop para verificar o menor evento
 					auxSes = getList().get(cont);
-					//if(auxSes.getFrame().PacketList.size() > 0){
 					if((auxSes.getFrame().GetEventFirstPacket() != -1) && lessSize > auxSes.getFrame().GetEventFirstPacket() && lessSize >= TimeSystem){
 						lessSize = auxSes.getFrame().GetEventFirstPacket();
 						IDlessSize = cont;
 					}
-					//}
 				}
 				if(list.get(IDlessSize).getFrame().PacketList.size() > 0){
 					recordData(list.get(IDlessSize).getFrame().PacketList.get(0)); //Com o menor evento em mãos...
@@ -156,10 +141,9 @@ public class Simulator extends Thread{
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		
-		Simulator MainThread =  new Simulator();
-		new Thread(MainThread).start();
-		//System.out.wait(10000);
+		GUI.setVisible(true);	
+		//Simulator MainThread =  new Simulator();
+		//new Thread(MainThread).start();
 	}
 
 	public static void SetTimeArriveLastSession(double time) throws InterruptedException{
@@ -175,6 +159,7 @@ public class Simulator extends Thread{
 		return timeSessionSaved;
 	}
 	
+	//Metodo responsável por salvar o evento em um arquivo
 	public static void recordData(Packets pac){
 		int SesID, PacID;
 		double TimeArrival;
@@ -201,7 +186,7 @@ public class Simulator extends Thread{
 		}
 		if(VerifyStopCritery(TimeArrival, contWr) == 0){ //Sempre verifica o criterio de parada 
 			StopSystem = true;		
-		}//interrompendo a criação de threads
+		}//finalizando o programa
 		pac = null;
 	}
 	
@@ -210,7 +195,7 @@ public class Simulator extends Thread{
 		switch(StopCritery){
 			case 1: if(ArgStopCritery <= crit1) return 0;
 				break;
-			case 2: if(ArgStopCritery <= crit2) return 0;
+			case 0: if(ArgStopCritery <= crit2) return 0;
 				break;
 			default: break;
 		}

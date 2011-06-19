@@ -93,7 +93,6 @@ public class Session extends Thread{
 	
 	//Inicializa a sessão verificando tipo do sistema: tradicional ou por GOP
 	public int StartSession() throws InterruptedException{
-		//double TArrive = this.InitialTime;
 		this.GenerateFrame();
 		return 0;
 	}
@@ -115,7 +114,7 @@ public class Session extends Thread{
 				TArrive = this.frame.CalcFrameI(); //Frame I é sempre o primeiro de um GOP
 				//this.frame.Test();
 				if(TArrive >= this.FinalTime) break;
-				while(contFrames <= this.qtFrames+1){ //de acordo com  tipo de GOP passado, faz a gravação de frames P e B
+				while(contFrames < this.qtFrames-1){ //de acordo com  tipo de GOP passado, faz a gravação de frames P e B
 					nxFrame = this.VerifyNextFrame();
 					if(nxFrame.equals("P")){
 						TArrive = this.frame.CalcFrameP();
