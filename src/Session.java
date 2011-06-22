@@ -100,14 +100,13 @@ public class Session extends Thread{
 
 	//Essa função gera os frames do GOP e estes geram os pacotes
 	public void GenerateFrame() throws InterruptedException{
-		
 		double TArrive = this.InitialTime;
 		int contFrames;
 		String nxFrame;
 		this.frame = new Frame(this.SessionID, this.meanArrivalPacket, this.CorrelationIP, this.CorrelationPB, this.StandardDeviationP, 
 				this.StandardDeviationI, this.StandardDeviationB,this.ErrorFrameB, this.ErrorFrameP, this.PacketSize, TArrive);
 		while(true){
-			System.out.printf("Inicio %d - %f - %f\n", this.SessionID, TArrive, this.FinalTime);
+			//System.out.printf("Inicio %d - %f - %f\n", this.SessionID, TArrive, this.FinalTime);
 			while(TArrive <= this.FinalTime){ //Enquanto não atingir tempo final da sessão
 				
 				contFrames = 0;
@@ -132,13 +131,12 @@ public class Session extends Thread{
 				//lastIDPac = this.frame.getPacketID() + 1;
 				this.contFrame = 1;
 			}
-			System.out.printf("terminei %d\n", this.SessionID);
 			this.frame.setPacketID(1);
 			TArrive = Simulator.GetTimeArriveLastSession();
-			this.FinalTime = TArrive + this.SessionSize;
-			this.frame.setTimePac(TArrive);
 			Simulator.SetTimeArriveLastSession(TArrive);
-			this.setSessionID(this.SessionID + Simulator.SimultaneousSessions);
+			this.FinalTime = TArrive + this.SessionSize;
+			this.frame.setTimePac(TArrive);			
+			this.setSessionID(Simulator.GetIDSession());
 			this.frame.setSessionID(this.SessionID);
 		}
 	}

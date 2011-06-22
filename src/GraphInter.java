@@ -14,11 +14,7 @@ import javax.swing.JToggleButton;
 import java.awt.Color;
 import javax.swing.BorderFactory;
 import javax.swing.border.BevelBorder;
-import java.awt.GridBagLayout;
-import java.awt.Dimension;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import javax.swing.SwingConstants;
+
 
 
 public class GraphInter extends JFrame {
@@ -593,7 +589,7 @@ public class GraphInter extends JFrame {
 	 * @return javax.swing.JComboBox	
 	 */
 	private JComboBox getJCBCriterioParadaOptions() {
-		String[] CriterioParadaOptions = {"Por Pacotes", "Por Sessões"};
+		String[] CriterioParadaOptions = {"Quantidade de Pacotes", "Tempo de Simulação"};
 
 		//Create the combo box, select item at index 4.
 		//Indices start at 0, so 4 specifies the pig.;
@@ -1067,7 +1063,7 @@ public class GraphInter extends JFrame {
 	 * @return javax.swing.JToggleButton	
 	 */
 	private void defaultValues() {
-		jTFCriterioParada.setText("5");
+		jTFCriterioParada.setText("100");
 		
 		jTFCorrelIP.setText("0.5");
 		jTFCorrelPB.setText("0.5");
@@ -1077,7 +1073,7 @@ public class GraphInter extends JFrame {
 		jTFDesvPadB.setText("5");
 		
 		jTFMediaChegadaSessoes.setText("5");
-		jTFParamDist1.setText("0.5");
+		jTFParamDist1.setText("5");
 		jTFParamDist2.setText("0");
 		if(RetChegSes[0] == 0){
 			RetChegSes[1] = Double.parseDouble(jTFParamDist1.getText());
@@ -1092,8 +1088,8 @@ public class GraphInter extends JFrame {
 			RetChegSes[2] = Double.parseDouble(jTFParamDist1.getText());
 		}		
 		
-		jTFMediaTamanhoSessoes.setText("5");
-		jTFParamDistTam.setText("0.5");
+		jTFMediaTamanhoSessoes.setText("20");
+		jTFParamDistTam.setText("20");
 		jTFParamDistTam2.setText("0");
 		if(RetTamSes[0] == 0){
 			RetTamSes[1] = Double.parseDouble(jTFParamDistTam.getText());
@@ -1108,8 +1104,8 @@ public class GraphInter extends JFrame {
 			RetTamSes[2] = Double.parseDouble(jTFParamDistTam2.getText());
 		}
 
-		jTFPacotesFixo.setText("5");
-		jTFParamDist1Pac1.setText("0.5");
+		jTFPacotesFixo.setText("3");
+		jTFParamDist1Pac1.setText("3");
 		jTFParamDist1Pac2.setText("0");
 		if(RetChegPac[0] == 0){
 			RetChegPac[1] = Double.parseDouble(jTFParamDist1Pac1.getText());
@@ -1276,7 +1272,7 @@ public class GraphInter extends JFrame {
 		else if(jRBSessoesFixo.isSelected()){
 			try{
 				MediaChegadaSessoes = Double.parseDouble(jTFMediaChegadaSessoes.getText());
-				RetChegSes[1] = ParamDist1;
+				RetChegSes[1] = MediaChegadaSessoes;
 			}
 			catch (NumberFormatException e) {
 				popup.jLErros[pos].setText("Valor fixo de chegada de sessões");
@@ -1312,7 +1308,7 @@ public class GraphInter extends JFrame {
 		else if(jRBSessoesFixo2.isSelected()){
 			try{
 				MediaTamanhoSessoes = Double.parseDouble(jTFMediaTamanhoSessoes.getText());
-				RetTamSes[1] = ParamDistTam;
+				RetTamSes[1] = MediaTamanhoSessoes;
 			}
 			catch (NumberFormatException e) {
 				popup.jLErros[pos].setText("Valor fixo de chegada das sessões");
@@ -1348,7 +1344,7 @@ public class GraphInter extends JFrame {
 		else{
 			try{
 				PacotesFixo = Double.parseDouble(jTFPacotesFixo.getText());
-				RetChegPac[1] = ParamDist1Pac1;
+				RetChegPac[1] = PacotesFixo;
 			}
 			catch (NumberFormatException e) {
 				popup.jLErros[pos].setText("Valor fixo de chegada dos pacotes");

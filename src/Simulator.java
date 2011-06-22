@@ -6,6 +6,7 @@ import java.io.*;
 
 public class Simulator extends Thread{
 
+	//lista de parâmetros estáticos
 	static GraphInter GUI = new GraphInter();
 	
 	static double[] PacketsArrival = new double[3];//0 - tipo distrib, 1 e 2 - parametros da distrib
@@ -16,10 +17,11 @@ public class Simulator extends Thread{
 	static double SessionSize = 40;
 	static public int SimultaneousSessions = 30;
 	
-	static int id = 1;
+	static int id, globalID = 0;
 	static Semaphore semap = new Semaphore(1, true); // 15 sessões simultaneas
 	static Semaphore sem_get_event = new Semaphore((SimultaneousSessions-1)*-1, true);
 	static Semaphore sem_critic_region = new Semaphore(1, true);
+	static Semaphore semap2 = new Semaphore(1, true);
 	
 	static RNGenerator Rand = new ExponentialDistribution();
 	static List<Session> list = new ArrayList<Session>(); //lista de sessões
@@ -32,9 +34,7 @@ public class Simulator extends Thread{
 	static int StopCritery, ArgStopCritery;
 		
 	public synchronized void run(){
-		
-		
-		
+				
 		//Inicialmente os valores serão os relacionados abaixo
 		final double ErrorP = GUI.getErroP();
 		final double ErrorB = GUI.getErroB();
@@ -46,15 +46,6 @@ public class Simulator extends Thread{
 		//final int TypeErrorDist = 1;
 		final int PacketSize = GUI.getTamPacote();
 		final String GOP = Integer.toString(GUI.getTipoGOP1()) + "," + Integer.toString(GUI.getTipoGOP2());
-		/*MeanSessionArrival[0] = 0;
-		MeanSessionArrival[1] = 5;
-		MeanSessionArrival[2] = 0;
-		MeanSessionSize[0] = 0;
-		MeanSessionSize[1] = 20;
-		MeanSessionSize[2] = 0;
-		PacketsArrival[0] = 0;
-		PacketsArrival[1] = 3;
-		PacketsArrival[2] = 0;*/
 		MeanSessionArrival = GUI.getRetChegSes();
 		MeanSessionSize = GUI.getRetTamSes();
 		PacketsArrival = GUI.getRetChegPac();
@@ -70,7 +61,13 @@ public class Simulator extends Thread{
 			@Override
 			public void run() {
 				for(int cont = 0; cont < SimultaneousSessions;cont++){
-
+					SessionSize = CalculateValueDistribution(MeanSessionSize);
+					try {
+						id = GetIDSession();
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 					Session Initiate = new Session(id, SessionArrival, SessionSize, PacketsArrival, ErrorP, ErrorB, CorrelationIP, 
 							CorrelationPB, StandardDeviationP, StandardDeviationI, StandardDeviationB, PacketSize, GOP);
 					list.add(Initiate);
@@ -82,9 +79,9 @@ public class Simulator extends Thread{
 					}
 					Initiate.start();
 					//SessionArrival = SessionArrival + 10;
-					SessionArrival = SessionArrival + Rand.GeneratedValues(MeanSessionArrival[1], MeanSessionArrival[2]);
-					//SessionSize = Rand.GeneratedValues(Graphics.SizeSessions); 
-					id++;
+					SessionArrival = SessionArrival + CalculateValueDistribution(MeanSessionArrival);
+					
+					//id++;
 				}
 			}
 		}).start();
@@ -136,8 +133,11 @@ public class Simulator extends Thread{
 				sem_critic_region.release();
 		}
 		
+		/*for(int cont = 0; cont < list.size(); cont++){
+			list.get(cont).interrupt();
+		}*/
+		Rec.Order(contWr, GUI.getNomeArquivo() + ".txt");
 		System.exit(1);
-		
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
@@ -154,9 +154,28 @@ public class Simulator extends Thread{
 	
 	public static double GetTimeArriveLastSession() throws InterruptedException{
 		semap.acquire();
-		timeSessionSaved =  timeSessionSaved + Rand.GeneratedValues(MeanSessionArrival[1], MeanSessionArrival[2]);
+		timeSessionSaved =  timeSessionSaved + CalculateValueDistribution(MeanSessionArrival);
 		semap.release();
 		return timeSessionSaved;
+	}
+	
+	public static int GetIDSession() throws InterruptedException{
+		semap.acquire();
+		globalID++;
+		semap.release();
+		return globalID;
+	}
+	
+	public static double CalculateValueDistribution(double[] vet){
+		int typedistrib = (int)vet[0];
+		double parameter1 = vet[1];
+		double parameter2 = vet[2];
+		if(typedistrib != 1){
+			return Rand.GeneratedValues(parameter1, parameter2);
+		}
+		else{
+			return parameter1;
+		}
 	}
 	
 	//Metodo responsável por salvar o evento em um arquivo
@@ -174,14 +193,13 @@ public class Simulator extends Thread{
 
 		String str = Integer.toString(SesID) + "\t" + Integer.toString(PacID) + "\t" + TypeF +
 				"\t" + df.format(TimeArrival) + "\t\t" + SizePac;
-		//System.out.printf(str);
 		
 		try{
 			check = Rec.WriteFile(str, check); //Chama obj OutputFile para gravar o pacote, check verifica se deve ser apagado arquivo já criado 
 			contWr++; // Variável utilizada para verificar critério de parada por numero de pacotes
 			
 		} catch (FileNotFoundException e) {
-			System.out.printf("Error semaphore");
+			System.out.printf("Error recording document");
 			e.printStackTrace();
 		}
 		if(VerifyStopCritery(TimeArrival, contWr) == 0){ //Sempre verifica o criterio de parada 
